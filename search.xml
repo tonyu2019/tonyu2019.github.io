@@ -20236,4 +20236,43 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
         <tag>文件后缀</tag>
       </tags>
   </entry>
+  <entry>
+    <title>vue跨域使用jsonp解决方案</title>
+    <url>/6fbae0cd.html</url>
+    <content><![CDATA[<p>使用api开发中跨域是很常见的事，解决跨域的最好方案还是由后端来解决比较方便，但是有的时候使用的是第三方的api，对方不可能为你一个人需求去改后端。</p>
+<a id="more"></a>
+
+<p>常见的跨域解决方案：</p>
+<ul>
+<li>后端允许所有或者允许指定域</li>
+<li>前后端布置在一个域下</li>
+<li>使用jsonp</li>
+</ul>
+<p>前两种不用说了，我们就说下使用第三者只有jsonp方案的实施步骤。</p>
+<p>网上好多关于jsonp的解决方案，我这里是开发小程序，使用了一个叫uniapp的库去生编译出小程序、h5等，小程序没什么问题，关键是h5牵涉到了域就会出现跨域问题，对方也只提供给了jsonp的一种方案，正常原生js里写jsonp没啥问题，要集成到uniapp中该如何入手呢。</p>
+<p>这种问题肯定有很多大神遇到过肯定也有解决方案，果然，官方插件库发现了这个<code>vue-jsonp</code>，下面给出来使用示例。</p>
+<p>vue请求数据的时候，会遇到跨域问题，服务器为了保证信息的安全，对跨域请求进行拦截，因此，为了解决vue跨域请求问题，需要使用jsonp。</p>
+<h2 id="安装jsonp"><a href="#安装jsonp" class="headerlink" title="安装jsonp"></a>安装jsonp</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">npm install --save vue-jsonp</span><br></pre></td></tr></table></figure>
+
+<h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>安装完成之后在main.js中引入jsonp</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span>  VueJsonp  <span class="keyword">from</span>  <span class="string">&#x27;vue-jsonp&#x27;</span></span><br><span class="line">Vue.use(VueJsonp)</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>引入jsonp之后，就可以使用jsonp跨域请求数据。<br> 注意：并不是所有的网站都可以使用jsonp请求后台数据，需要后台支持jsonp。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> param = &#123;</span><br><span class="line">        header: &#123;</span><br><span class="line">          <span class="string">&quot;content-type&quot;</span>: <span class="string">&quot;application/xml&quot;</span> <span class="comment">// 豆瓣一定不能是json</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="built_in">this</span>.$jsonp(<span class="string">&#x27;https://douban.uieee.com/v2/movie/in_theaters&#x27;</span>,param).then(</span><br><span class="line">        (json) =&gt; &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(json)</span><br><span class="line">        &#125;).catch(<span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(err)</span><br><span class="line">        &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>测试下豆瓣，可以了吧。</p>
+]]></content>
+      <categories>
+        <category>re</category>
+        <category>vue</category>
+      </categories>
+      <tags>
+        <tag>vue跨域</tag>
+        <tag>vue jsonp</tag>
+        <tag>uniApp 跨域</tag>
+        <tag>uniApp jsonp</tag>
+        <tag>uni.request跨域</tag>
+        <tag>uni.request jsonp</tag>
+      </tags>
+  </entry>
 </search>
