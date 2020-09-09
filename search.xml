@@ -4149,47 +4149,6 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
       </tags>
   </entry>
   <entry>
-    <title>django软删除与模型字段复用</title>
-    <url>/ebdbdc90.html</url>
-    <content><![CDATA[<p>之前使用<code>TP</code>，框架自带有软删除功能，如果使用<code>django</code>，虽然没有内置，我们也可以来简单的手写一下。想到这里权衡下，我们几乎所有的表都要用到这个字段甚至多个字段，当然我们可以不厌其烦的每个模型单独创建下，我们也可以使用代码复用的思想来完成这件事。</p>
-<a id="more"></a>
-
-<h2 id="模型字段复用"><a href="#模型字段复用" class="headerlink" title="模型字段复用"></a>模型字段复用</h2><p>需要复用的字段有：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">create_time = models.DateTimeField(verbose_name=<span class="string">&#x27;添加时间&#x27;</span>, auto_now_add=<span class="literal">True</span>)</span><br><span class="line">update_time = models.DateTimeField(verbose_name=<span class="string">&#x27;更新时间&#x27;</span>, auto_now=<span class="literal">True</span>)</span><br><span class="line">delete_time = models.DateTimeField(verbose_name=<span class="string">&#x27;删除时间&#x27;</span>, null=<span class="literal">True</span>, blank=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
-
-<p>模型类都有一个元属性，有一个关键字叫<code>abstract</code>，如果将该属性设置为<code>True</code>，数据库将不再创建该表。然而我们可以利用其来做父类，继承过来所有的模型不就自带这些字段了吗。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SoftDeleteModel</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    create_time = models.DateTimeField(verbose_name=<span class="string">&#x27;添加时间&#x27;</span>, auto_now_add=<span class="literal">True</span>)</span><br><span class="line">    update_time = models.DateTimeField(verbose_name=<span class="string">&#x27;更新时间&#x27;</span>, auto_now=<span class="literal">True</span>)</span><br><span class="line">    delete_time = models.DateTimeField(verbose_name=<span class="string">&#x27;删除时间&#x27;</span>, null=<span class="literal">True</span>, blank=<span class="literal">True</span>)</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        abstract = <span class="literal">True</span></span><br><span class="line">        </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CatsModel</span>(<span class="params">SoftDeleteModel</span>):</span></span><br><span class="line">    name = models.CharField(max_length=<span class="number">25</span>, verbose_name=<span class="string">&#x27;名称&#x27;</span>)</span><br><span class="line">    remark = models.CharField(max_length=<span class="number">200</span>, verbose_name=<span class="string">&#x27;备注&#x27;</span>, blank=<span class="literal">True</span>)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self.name</span><br></pre></td></tr></table></figure>
-
-<p>如此，<code>CatsModel</code>数据表中变自带了三个字段，其他模型同理。</p>
-<h2 id="Django软删除"><a href="#Django软删除" class="headerlink" title="Django软删除"></a><code>Django</code>软删除</h2><p>软删除也要用到字段复用，默认<code>delete_time</code>为<code>Null</code>，删除时该字段为当前删除时间，这样就形成了软删除。</p>
-<p>网上有的说在模型里直接重写<code>delete</code>方法，即可完成自定义软删除，我们来分析下我们的删除命令：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">TableModel.objects.filter(pk=<span class="number">2</span>).delete()</span><br></pre></td></tr></table></figure>
-
-<p>可以看到是走了一个<code>objects</code>的东西，如果你尝试过在模型类中重写<code>delete</code>方法你会发现，这条命令根本不会走你自己的<code>delete</code>方法。</p>
-<h3 id="objects是什么"><a href="#objects是什么" class="headerlink" title="objects是什么"></a>objects是什么</h3><p>默认情况下，<code>Django</code> 为每个<code>Django</code>模型类添加一个模型管理类<code>Manager</code>的对象为<code>objects</code>。如果想要将这个对象修改为其他名称，那么可以用<code>models.Manager()</code>来自定义创建对象</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AREA</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    ....</span><br><span class="line">    area_obj = models.Manager() <span class="comment"># 自定义模型管理对象</span></span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        db_table = <span class="string">&#x27;AREA&#x27;</span> <span class="comment"># 设置表名为 AREA</span></span><br><span class="line">        </span><br><span class="line"><span class="comment"># 此时执行数据库操作，我们就可以不用objects了</span></span><br><span class="line">AREA.area_obj.filter(pk=<span class="number">2</span>).first()</span><br><span class="line">AREA.area_obj.filter(pk=<span class="number">2</span>).delete()</span><br></pre></td></tr></table></figure>
-
-<h3 id="软删除示例"><a href="#软删除示例" class="headerlink" title="软删除示例"></a>软删除示例</h3><h4 id="创建自定义manager"><a href="#创建自定义manager" class="headerlink" title="创建自定义manager"></a>创建自定义<code>manager</code></h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.db <span class="keyword">import</span> models</span><br><span class="line"><span class="keyword">from</span> django.db.models.query <span class="keyword">import</span> QuerySet</span><br><span class="line"><span class="keyword">from</span> django.utils <span class="keyword">import</span> timezone</span><br><span class="line"><span class="comment"># 重写delete</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SoftDeleteQuerySet</span>(<span class="params">QuerySet</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">delete</span>(<span class="params">self</span>):</span></span><br><span class="line">        self.update(delete_time=timezone.now())</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重写manager，并重置查询筛选未删除记录</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SoftDeleteManager</span>(<span class="params">models.Manager</span>):</span></span><br><span class="line">    _queryset_class = SoftDeleteQuerySet</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span>(<span class="params">self</span>):</span></span><br><span class="line">        kwargs = &#123;<span class="string">&#x27;model&#x27;</span>:self.model, <span class="string">&#x27;using&#x27;</span>:self._db&#125;</span><br><span class="line">        <span class="keyword">if</span> hasattr(self, <span class="string">&#x27;_hints&#x27;</span>):</span><br><span class="line">            kwargs[<span class="string">&#x27;hints&#x27;</span>] = self._hints</span><br><span class="line">        <span class="keyword">return</span> self._queryset_class(**kwargs).filter(delete_time__isnull=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 软删除模型类</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SoftDeleteModel</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    create_time = models.DateTimeField(verbose_name=<span class="string">&#x27;添加时间&#x27;</span>, auto_now_add=<span class="literal">True</span>)</span><br><span class="line">    update_time = models.DateTimeField(verbose_name=<span class="string">&#x27;更新时间&#x27;</span>, auto_now=<span class="literal">True</span>)</span><br><span class="line">    delete_time = models.DateTimeField(verbose_name=<span class="string">&#x27;删除时间&#x27;</span>, null=<span class="literal">True</span>, blank=<span class="literal">True</span>)</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        abstract = <span class="literal">True</span></span><br><span class="line">    objects = SoftDeleteManager()</span><br></pre></td></tr></table></figure>
-
-<h4 id="继承软删除模型"><a href="#继承软删除模型" class="headerlink" title="继承软删除模型"></a>继承软删除模型</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CatsModel</span>(<span class="params">SoftDeleteModel</span>):</span></span><br><span class="line">    name = models.CharField(max_length=<span class="number">25</span>, verbose_name=<span class="string">&#x27;名称&#x27;</span>)</span><br><span class="line">    remark = models.CharField(max_length=<span class="number">200</span>, verbose_name=<span class="string">&#x27;备注&#x27;</span>, blank=<span class="literal">True</span>)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self.name</span><br></pre></td></tr></table></figure>
-
-<p>以上即完成了软删除的功能，迁移下数据库测试数据，看是否达到你想要的了！！！</p>
-]]></content>
-      <categories>
-        <category>rd</category>
-        <category>python</category>
-        <category>django</category>
-      </categories>
-      <tags>
-        <tag>django软删除</tag>
-        <tag>字段复用</tag>
-        <tag>django字段复用</tag>
-        <tag>django模型复用</tag>
-        <tag>django共用字段</tag>
-        <tag>django通用字段</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>git常用命令</title>
     <url>/953.html</url>
     <content><![CDATA[<p>Git 有多种使用方式。 你可以使用原生的命令行模式，也可以使用 GUI 模式，这些 GUI 软件也能提供多种功能。 在本书中，我们将使用命令行模式。 这是因为首先，只有在命令行模式下你才能执行 Git 的 <strong>所有</strong>命令，而大多数的 GUI 软件只实现了 Git 所有功能的一个子集以降低操作难度。 如果你学会了在命令行下如何操作，那么你在操作 GUI 软件时应该也不会遇到什么困难，但是，反之则不成立。 此外，由于每个人的想法与侧重点不同，不同的人常常会安装不同的 GUI 软件，但 <em>所有</em> 人一定会有命令行工具。</p>
@@ -4234,6 +4193,47 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 ]]></content>
       <tags>
         <tag>git命令</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>django软删除与模型字段复用</title>
+    <url>/ebdbdc90.html</url>
+    <content><![CDATA[<p>之前使用<code>TP</code>，框架自带有软删除功能，如果使用<code>django</code>，虽然没有内置，我们也可以来简单的手写一下。想到这里权衡下，我们几乎所有的表都要用到这个字段甚至多个字段，当然我们可以不厌其烦的每个模型单独创建下，我们也可以使用代码复用的思想来完成这件事。</p>
+<a id="more"></a>
+
+<h2 id="模型字段复用"><a href="#模型字段复用" class="headerlink" title="模型字段复用"></a>模型字段复用</h2><p>需要复用的字段有：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">create_time = models.DateTimeField(verbose_name=<span class="string">&#x27;添加时间&#x27;</span>, auto_now_add=<span class="literal">True</span>)</span><br><span class="line">update_time = models.DateTimeField(verbose_name=<span class="string">&#x27;更新时间&#x27;</span>, auto_now=<span class="literal">True</span>)</span><br><span class="line">delete_time = models.DateTimeField(verbose_name=<span class="string">&#x27;删除时间&#x27;</span>, null=<span class="literal">True</span>, blank=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<p>模型类都有一个元属性，有一个关键字叫<code>abstract</code>，如果将该属性设置为<code>True</code>，数据库将不再创建该表。然而我们可以利用其来做父类，继承过来所有的模型不就自带这些字段了吗。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SoftDeleteModel</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    create_time = models.DateTimeField(verbose_name=<span class="string">&#x27;添加时间&#x27;</span>, auto_now_add=<span class="literal">True</span>)</span><br><span class="line">    update_time = models.DateTimeField(verbose_name=<span class="string">&#x27;更新时间&#x27;</span>, auto_now=<span class="literal">True</span>)</span><br><span class="line">    delete_time = models.DateTimeField(verbose_name=<span class="string">&#x27;删除时间&#x27;</span>, null=<span class="literal">True</span>, blank=<span class="literal">True</span>)</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        abstract = <span class="literal">True</span></span><br><span class="line">        </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CatsModel</span>(<span class="params">SoftDeleteModel</span>):</span></span><br><span class="line">    name = models.CharField(max_length=<span class="number">25</span>, verbose_name=<span class="string">&#x27;名称&#x27;</span>)</span><br><span class="line">    remark = models.CharField(max_length=<span class="number">200</span>, verbose_name=<span class="string">&#x27;备注&#x27;</span>, blank=<span class="literal">True</span>)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self.name</span><br></pre></td></tr></table></figure>
+
+<p>如此，<code>CatsModel</code>数据表中变自带了三个字段，其他模型同理。</p>
+<h2 id="Django软删除"><a href="#Django软删除" class="headerlink" title="Django软删除"></a><code>Django</code>软删除</h2><p>软删除也要用到字段复用，默认<code>delete_time</code>为<code>Null</code>，删除时该字段为当前删除时间，这样就形成了软删除。</p>
+<p>网上有的说在模型里直接重写<code>delete</code>方法，即可完成自定义软删除，我们来分析下我们的删除命令：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">TableModel.objects.filter(pk=<span class="number">2</span>).delete()</span><br></pre></td></tr></table></figure>
+
+<p>可以看到是走了一个<code>objects</code>的东西，如果你尝试过在模型类中重写<code>delete</code>方法你会发现，这条命令根本不会走你自己的<code>delete</code>方法。</p>
+<h3 id="objects是什么"><a href="#objects是什么" class="headerlink" title="objects是什么"></a>objects是什么</h3><p>默认情况下，<code>Django</code> 为每个<code>Django</code>模型类添加一个模型管理类<code>Manager</code>的对象为<code>objects</code>。如果想要将这个对象修改为其他名称，那么可以用<code>models.Manager()</code>来自定义创建对象</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AREA</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    ....</span><br><span class="line">    area_obj = models.Manager() <span class="comment"># 自定义模型管理对象</span></span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        db_table = <span class="string">&#x27;AREA&#x27;</span> <span class="comment"># 设置表名为 AREA</span></span><br><span class="line">        </span><br><span class="line"><span class="comment"># 此时执行数据库操作，我们就可以不用objects了</span></span><br><span class="line">AREA.area_obj.filter(pk=<span class="number">2</span>).first()</span><br><span class="line">AREA.area_obj.filter(pk=<span class="number">2</span>).delete()</span><br></pre></td></tr></table></figure>
+
+<h3 id="软删除示例"><a href="#软删除示例" class="headerlink" title="软删除示例"></a>软删除示例</h3><h4 id="创建自定义manager"><a href="#创建自定义manager" class="headerlink" title="创建自定义manager"></a>创建自定义<code>manager</code></h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.db <span class="keyword">import</span> models</span><br><span class="line"><span class="keyword">from</span> django.db.models.query <span class="keyword">import</span> QuerySet</span><br><span class="line"><span class="keyword">from</span> django.utils <span class="keyword">import</span> timezone</span><br><span class="line"><span class="comment"># 重写delete</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SoftDeleteQuerySet</span>(<span class="params">QuerySet</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">delete</span>(<span class="params">self</span>):</span></span><br><span class="line">        self.update(delete_time=timezone.now())</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重写manager，并重置查询筛选未删除记录</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SoftDeleteManager</span>(<span class="params">models.Manager</span>):</span></span><br><span class="line">    _queryset_class = SoftDeleteQuerySet</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span>(<span class="params">self</span>):</span></span><br><span class="line">        kwargs = &#123;<span class="string">&#x27;model&#x27;</span>:self.model, <span class="string">&#x27;using&#x27;</span>:self._db&#125;</span><br><span class="line">        <span class="keyword">if</span> hasattr(self, <span class="string">&#x27;_hints&#x27;</span>):</span><br><span class="line">            kwargs[<span class="string">&#x27;hints&#x27;</span>] = self._hints</span><br><span class="line">        <span class="keyword">return</span> self._queryset_class(**kwargs).filter(delete_time__isnull=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 软删除模型类</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SoftDeleteModel</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    create_time = models.DateTimeField(verbose_name=<span class="string">&#x27;添加时间&#x27;</span>, auto_now_add=<span class="literal">True</span>)</span><br><span class="line">    update_time = models.DateTimeField(verbose_name=<span class="string">&#x27;更新时间&#x27;</span>, auto_now=<span class="literal">True</span>)</span><br><span class="line">    delete_time = models.DateTimeField(verbose_name=<span class="string">&#x27;删除时间&#x27;</span>, null=<span class="literal">True</span>, blank=<span class="literal">True</span>)</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        abstract = <span class="literal">True</span></span><br><span class="line">    objects = SoftDeleteManager()</span><br></pre></td></tr></table></figure>
+
+<h4 id="继承软删除模型"><a href="#继承软删除模型" class="headerlink" title="继承软删除模型"></a>继承软删除模型</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CatsModel</span>(<span class="params">SoftDeleteModel</span>):</span></span><br><span class="line">    name = models.CharField(max_length=<span class="number">25</span>, verbose_name=<span class="string">&#x27;名称&#x27;</span>)</span><br><span class="line">    remark = models.CharField(max_length=<span class="number">200</span>, verbose_name=<span class="string">&#x27;备注&#x27;</span>, blank=<span class="literal">True</span>)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self.name</span><br></pre></td></tr></table></figure>
+
+<p>以上即完成了软删除的功能，迁移下数据库测试数据，看是否达到你想要的了！！！</p>
+]]></content>
+      <categories>
+        <category>rd</category>
+        <category>python</category>
+        <category>django</category>
+      </categories>
+      <tags>
+        <tag>django软删除</tag>
+        <tag>字段复用</tag>
+        <tag>django字段复用</tag>
+        <tag>django模型复用</tag>
+        <tag>django共用字段</tag>
+        <tag>django通用字段</tag>
       </tags>
   </entry>
   <entry>
@@ -8666,6 +8666,45 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
         <tag>js显示待上传图片</tag>
         <tag>vue资源数据一起提交</tag>
         <tag>FileReader</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vue跨域使用jsonp解决方案</title>
+    <url>/6fbae0cd.html</url>
+    <content><![CDATA[<p>使用api开发中跨域是很常见的事，解决跨域的最好方案还是由后端来解决比较方便，但是有的时候使用的是第三方的api，对方不可能为你一个人需求去改后端。</p>
+<a id="more"></a>
+
+<p>常见的跨域解决方案：</p>
+<ul>
+<li>后端允许所有或者允许指定域</li>
+<li>前后端布置在一个域下</li>
+<li>使用jsonp</li>
+</ul>
+<p>前两种不用说了，我们就说下使用第三者只有jsonp方案的实施步骤。</p>
+<p>网上好多关于jsonp的解决方案，我这里是开发小程序，使用了一个叫uniapp的库去生编译出小程序、h5等，小程序没什么问题，关键是h5牵涉到了域就会出现跨域问题，对方也只提供给了jsonp的一种方案，正常原生js里写jsonp没啥问题，要集成到uniapp中该如何入手呢。</p>
+<p>这种问题肯定有很多大神遇到过肯定也有解决方案，果然，官方插件库发现了这个<code>vue-jsonp</code>，下面给出来使用示例。</p>
+<p>vue请求数据的时候，会遇到跨域问题，服务器为了保证信息的安全，对跨域请求进行拦截，因此，为了解决vue跨域请求问题，需要使用jsonp。</p>
+<h2 id="安装jsonp"><a href="#安装jsonp" class="headerlink" title="安装jsonp"></a>安装jsonp</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">npm install --save vue-jsonp</span><br></pre></td></tr></table></figure>
+
+<h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>安装完成之后在main.js中引入jsonp</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span>  VueJsonp  <span class="keyword">from</span>  <span class="string">&#x27;vue-jsonp&#x27;</span></span><br><span class="line">Vue.use(VueJsonp)</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>引入jsonp之后，就可以使用jsonp跨域请求数据。<br> 注意：并不是所有的网站都可以使用jsonp请求后台数据，需要后台支持jsonp。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> param = &#123;</span><br><span class="line">        header: &#123;</span><br><span class="line">          <span class="string">&quot;content-type&quot;</span>: <span class="string">&quot;application/xml&quot;</span> <span class="comment">// 豆瓣一定不能是json</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="built_in">this</span>.$jsonp(<span class="string">&#x27;https://douban.uieee.com/v2/movie/in_theaters&#x27;</span>,param).then(</span><br><span class="line">        (json) =&gt; &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(json)</span><br><span class="line">        &#125;).catch(<span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(err)</span><br><span class="line">        &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>测试下豆瓣，可以了吧。</p>
+]]></content>
+      <categories>
+        <category>re</category>
+        <category>vue</category>
+      </categories>
+      <tags>
+        <tag>vue跨域</tag>
+        <tag>vue jsonp</tag>
+        <tag>uniApp 跨域</tag>
+        <tag>uniApp jsonp</tag>
+        <tag>uni.request跨域</tag>
+        <tag>uni.request jsonp</tag>
       </tags>
   </entry>
   <entry>
@@ -20234,45 +20273,6 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
         <tag>后缀</tag>
         <tag>后缀名</tag>
         <tag>文件后缀</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>vue跨域使用jsonp解决方案</title>
-    <url>/6fbae0cd.html</url>
-    <content><![CDATA[<p>使用api开发中跨域是很常见的事，解决跨域的最好方案还是由后端来解决比较方便，但是有的时候使用的是第三方的api，对方不可能为你一个人需求去改后端。</p>
-<a id="more"></a>
-
-<p>常见的跨域解决方案：</p>
-<ul>
-<li>后端允许所有或者允许指定域</li>
-<li>前后端布置在一个域下</li>
-<li>使用jsonp</li>
-</ul>
-<p>前两种不用说了，我们就说下使用第三者只有jsonp方案的实施步骤。</p>
-<p>网上好多关于jsonp的解决方案，我这里是开发小程序，使用了一个叫uniapp的库去生编译出小程序、h5等，小程序没什么问题，关键是h5牵涉到了域就会出现跨域问题，对方也只提供给了jsonp的一种方案，正常原生js里写jsonp没啥问题，要集成到uniapp中该如何入手呢。</p>
-<p>这种问题肯定有很多大神遇到过肯定也有解决方案，果然，官方插件库发现了这个<code>vue-jsonp</code>，下面给出来使用示例。</p>
-<p>vue请求数据的时候，会遇到跨域问题，服务器为了保证信息的安全，对跨域请求进行拦截，因此，为了解决vue跨域请求问题，需要使用jsonp。</p>
-<h2 id="安装jsonp"><a href="#安装jsonp" class="headerlink" title="安装jsonp"></a>安装jsonp</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">npm install --save vue-jsonp</span><br></pre></td></tr></table></figure>
-
-<h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>安装完成之后在main.js中引入jsonp</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span>  VueJsonp  <span class="keyword">from</span>  <span class="string">&#x27;vue-jsonp&#x27;</span></span><br><span class="line">Vue.use(VueJsonp)</span><br></pre></td></tr></table></figure>
-
-<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>引入jsonp之后，就可以使用jsonp跨域请求数据。<br> 注意：并不是所有的网站都可以使用jsonp请求后台数据，需要后台支持jsonp。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> param = &#123;</span><br><span class="line">        header: &#123;</span><br><span class="line">          <span class="string">&quot;content-type&quot;</span>: <span class="string">&quot;application/xml&quot;</span> <span class="comment">// 豆瓣一定不能是json</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="built_in">this</span>.$jsonp(<span class="string">&#x27;https://douban.uieee.com/v2/movie/in_theaters&#x27;</span>,param).then(</span><br><span class="line">        (json) =&gt; &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(json)</span><br><span class="line">        &#125;).catch(<span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(err)</span><br><span class="line">        &#125;)</span><br></pre></td></tr></table></figure>
-
-<p>测试下豆瓣，可以了吧。</p>
-]]></content>
-      <categories>
-        <category>re</category>
-        <category>vue</category>
-      </categories>
-      <tags>
-        <tag>vue跨域</tag>
-        <tag>vue jsonp</tag>
-        <tag>uniApp 跨域</tag>
-        <tag>uniApp jsonp</tag>
-        <tag>uni.request跨域</tag>
-        <tag>uni.request jsonp</tag>
       </tags>
   </entry>
 </search>
