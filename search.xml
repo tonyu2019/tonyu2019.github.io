@@ -20412,4 +20412,58 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
         <tag>内存数据库</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Django SlugField用法示例</title>
+    <url>/747758eb.html</url>
+    <content><![CDATA[<p>在开发<code>web</code>系统中，关于内容<code>url</code>链接，有时候我们常常希望可以自定义，而不是看起来没有任何含义的<code>id</code>来表示，这时候<code>Django</code>提供给我们的<code>SlugField</code>就能排上用场了。</p>
+<a id="more"></a>
+
+<p><code>slug</code> 实际的含义是标称， 单位的意思。在 <code>django</code> 中，<code>slug</code> 指有效 <code>URL</code> 的一部分，能使 <code>URL</code>  更加清晰易懂。比如有这样一篇文章，标题是”我是中国人”，它的 <code>URL</code>  地址是<code>/posts/wo-shi-zhong-guo-ren</code>，后面这一部分便是 <code>slug</code>。</p>
+<h3 id="Django内置slugify"><a href="#Django内置slugify" class="headerlink" title="Django内置slugify"></a>Django内置slugify</h3><p>为了便于自动生成<code>slug</code>，<code>Django</code>甚至帮我们内置了该扩展，但是使用过程中会发现，并不适合国人，它对于汉语的支持很不友好，生成不了中文对应的<code>slug</code>。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; from django.template.defaultfilters import slugify</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; slugify(<span class="string">&#x27;hello world&#x27;</span>)</span></span><br><span class="line">&#x27;hello-world&#x27;</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; slugify(<span class="string">&#x27;我是中国人&#x27;</span>)</span></span><br><span class="line">&#x27;&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到中文生成不了对应的<code>slug</code>了。</p>
+<h3 id="django-uuslug"><a href="#django-uuslug" class="headerlink" title="django-uuslug"></a><code>django-uuslug</code></h3><p><code>django-uuslug</code> 是一个很方便的将中文转化成拼音 <code>slug</code> 的插件。通过使用 <code>django-uuslug</code>，可以确保 <code>slug</code> 是唯一的，并且都是 <code>unicode</code> 编码的。</p>
+<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pip install django-uuslug</span><br></pre></td></tr></table></figure>
+
+<h4 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; from uuslug import slugify</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; slugify(<span class="string">&#x27;hello world&#x27;</span>)</span></span><br><span class="line">&#x27;hello-world&#x27;</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; slugify(<span class="string">&#x27;我是中国人&#x27;</span>)</span></span><br><span class="line">&#x27;wo-shi-zhong-guo-ren&#x27;</span><br></pre></td></tr></table></figure>
+
+<h3 id="项目应用"><a href="#项目应用" class="headerlink" title="项目应用"></a>项目应用</h3><h4 id="定义模型"><a href="#定义模型" class="headerlink" title="定义模型"></a>定义模型</h4><p>网上大部分的做法是一步写死，直接自动生成slug，且禁止编辑。我们自己项目中有时候像让slug显得更有意义，所以有时候需要自己编辑slug，不主动设定slug时候才自动生成slug。</p>
+<h5 id="网上做法"><a href="#网上做法" class="headerlink" title="网上做法"></a>网上做法</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.db <span class="keyword">import</span> models</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> uuslug <span class="keyword">import</span> slugify</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Post</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    title = models.CharField(<span class="string">&#x27;标题&#x27;</span>, max_length=<span class="number">100</span>)</span><br><span class="line">		slug = models.SlugField(editable=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">save</span>(<span class="params">self, *args, **kwargs</span>):</span></span><br><span class="line">        self.slug = slugify(self.title)</span><br><span class="line">        super(Post, self).save(*args, **kwargs)</span><br></pre></td></tr></table></figure>
+
+<h5 id="代码优化"><a href="#代码优化" class="headerlink" title="代码优化"></a>代码优化</h5><p>将slug设为可编辑可为空，保存时判断用户没有填写slug我们在生成slug，这样显得更人性化。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.db <span class="keyword">import</span> models</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> uuslug <span class="keyword">import</span> slugify</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Post</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">	title = models.CharField(<span class="string">&#x27;标题&#x27;</span>, max_length=<span class="number">100</span>)</span><br><span class="line">	slug = models.SlugField(null=<span class="literal">True</span>, blank=<span class="literal">True</span>, max_length=<span class="number">50</span>)</span><br><span class="line">    </span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">save</span>(<span class="params">self, *args, **kwargs</span>):</span></span><br><span class="line">    <span class="comment"># 用户没有填写slug再生成slug</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> self.slug:</span><br><span class="line">			self.slug = slugify(self.title)</span><br><span class="line">    super(Post, self).save(*args, **kwargs)</span><br></pre></td></tr></table></figure>
+<h4 id="定义视图"><a href="#定义视图" class="headerlink" title="定义视图"></a>定义视图</h4><p>使用<code>CBV</code>模式写了简单两个视图，一个列表页，一个详情页</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> django.shortcuts <span class="keyword">import</span> HttpResponse</span><br><span class="line"><span class="keyword">from</span> django.http <span class="keyword">import</span> JsonResponse</span><br><span class="line"><span class="keyword">from</span> django.views <span class="keyword">import</span> View</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> . <span class="keyword">import</span> models</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PostView</span>(<span class="params">View</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;文章列表视图&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get</span>(<span class="params">self, request</span>):</span></span><br><span class="line">      	<span class="comment"># 获取所有文章</span></span><br><span class="line">        posts = models.Post.objects.all()</span><br><span class="line">        data = []</span><br><span class="line">        <span class="keyword">for</span> post <span class="keyword">in</span> posts:</span><br><span class="line">            data.append(&#123;</span><br><span class="line">                <span class="string">&#x27;title&#x27;</span>: post.title,</span><br><span class="line">                <span class="string">&#x27;slug&#x27;</span>: post.slug</span><br><span class="line">            &#125;)</span><br><span class="line">        <span class="comment"># 两种返回方式皆可以</span></span><br><span class="line">        <span class="comment"># return HttpResponse(json.dumps(data, ensure_ascii=False))</span></span><br><span class="line">        <span class="keyword">return</span> JsonResponse(&#123;<span class="string">&quot;data&quot;</span>: data&#125;, json_dumps_params=&#123;<span class="string">&quot;ensure_ascii&quot;</span>: <span class="literal">False</span>&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PostDetailView</span>(<span class="params">View</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;文章详情视图&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get</span>(<span class="params">self, request, slug</span>):</span></span><br><span class="line">        <span class="comment"># 查询指定slug对应的文章</span></span><br><span class="line">        post_obj = models.Post.objects.filter(slug=slug).get()</span><br><span class="line">        data = &#123;</span><br><span class="line">            <span class="string">&#x27;title&#x27;</span>: post_obj.title,</span><br><span class="line">            <span class="string">&#x27;slug&#x27;</span>: post_obj.slug</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> JsonResponse(&#123;<span class="string">&quot;data&quot;</span>: data&#125;, json_dumps_params=&#123;<span class="string">&quot;ensure_ascii&quot;</span>: <span class="literal">False</span>&#125;)</span><br></pre></td></tr></table></figure>
+
+<h4 id="添加数据"><a href="#添加数据" class="headerlink" title="添加数据"></a>添加数据</h4><p>我们在<code>django-admin</code>中添加了两条测试数据，一条自己编辑<code>slug</code>的文章，一条自动生成<code>slug</code>的文章</p>
+<p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20200917100850.png"></p>
+<h4 id="设置路由"><a href="#设置路由" class="headerlink" title="设置路由"></a>设置路由</h4><p>路由我们这里肯定也要相对应的设置两条，分别对应列表页和详情页。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 列表页</span></span><br><span class="line">path(<span class="string">&#x27;post/&#x27;</span>, views.PostView.as_view()),</span><br><span class="line"><span class="comment"># 详情页</span></span><br><span class="line">path(<span class="string">&#x27;post/&lt;slug:slug&gt;/&#x27;</span>, views.PostDetailView.as_view())</span><br></pre></td></tr></table></figure>
+
+<h4 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h4><p>启动该<code>Django</code>程序。</p>
+<h5 id="访问列表页"><a href="#访问列表页" class="headerlink" title="访问列表页"></a>访问列表页</h5><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20200917101220.png"></p>
+<h5 id="访问详情页"><a href="#访问详情页" class="headerlink" title="访问详情页"></a>访问详情页</h5><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20200917101245.png"></p>
+<p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20200917101326.png"></p>
+<p>至此，我们的<code>slug</code>从定义到使用全部说完了，更多高阶用法去官方文档翻翻看吧。</p>
+]]></content>
+      <categories>
+        <category>rd</category>
+        <category>python</category>
+        <category>django</category>
+      </categories>
+      <tags>
+        <tag>Django</tag>
+        <tag>Django模型</tag>
+        <tag>Django开发web</tag>
+        <tag>Django使用</tag>
+        <tag>Django自定义url</tag>
+        <tag>Django伪静态</tag>
+        <tag>Django slug</tag>
+        <tag>slug</tag>
+        <tag>SlugField</tag>
+        <tag>中文slug</tag>
+        <tag>自定义url</tag>
+      </tags>
+  </entry>
 </search>
