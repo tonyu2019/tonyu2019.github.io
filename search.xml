@@ -20645,7 +20645,7 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 
 <h4 id="使用transformRequest"><a href="#使用transformRequest" class="headerlink" title="使用transformRequest"></a>使用transformRequest</h4><p>既然 axios 源码中有那么一段【很关键】的代码，那么，我们也可以通过修改 <code>transformRequest</code> 来达到我们的目的。</p>
 <p>在 axios 的请求配置项中，是有 <code>transformRequest</code> 的配置的： </p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// `transformResponse` 在传递给 then/catch 前，允许修改响应数据</span></span><br><span class="line">  transformResponse: [<span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 对 data 进行任意转换处理</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> data;</span><br><span class="line">  &#125;],</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// `transformRequest` 允许在向服务器发送前，修改请求数据</span></span><br><span class="line">  <span class="comment">// 只能用在 &#x27;PUT&#x27;, &#x27;POST&#x27; 和 &#x27;PATCH&#x27; 这几个请求方法</span></span><br><span class="line">  <span class="comment">// 后面数组中的函数必须返回一个字符串，或 ArrayBuffer，或 Stream</span></span><br><span class="line">  transformRequest: [<span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 对 data 进行任意转换处理</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> data;</span><br><span class="line">  &#125;],</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p><em>OK，那么现在我们的请求就可以写成下面这个样子了：</em></p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Qs <span class="keyword">from</span> <span class="string">&#x27;qs&#x27;</span></span><br><span class="line"><span class="keyword">let</span> data = &#123;<span class="attr">firstName</span>: <span class="string">&#x27;Fred&#x27;</span>,<span class="attr">lastName</span>: <span class="string">&#x27;Flintstone&#x27;</span>&#125;</span><br><span class="line">axios(&#123;</span><br><span class="line">    url: <span class="string">&#x27;/user&#x27;</span>,</span><br><span class="line">    method: <span class="string">&#x27;post&#x27;</span>,</span><br><span class="line">    transformRequest: [<span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span><br><span class="line">        <span class="comment">// 对 data 进行任意转换处理</span></span><br><span class="line">        <span class="keyword">return</span> Qs.stringify(data)</span><br><span class="line">    &#125;],</span><br><span class="line">    data: data</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
@@ -20666,6 +20666,445 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
         <tag>后端获取不到post</tag>
         <tag>后端获取不到axios</tag>
         <tag>axios请求数据</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Django之通用视图组件</title>
+    <url>/de9dd21b.html</url>
+    <content><![CDATA[<p>前面我们说到过<a href="https://www.diandian100.cn/6f5ecc9e.html?highlight=%E8%A7%86%E5%9B%BE">Django之CBV</a>，说到过<a href="https://www.diandian100.cn/148b93b.html?highlight=%E8%A7%86%E5%9B%BE">Django的视图层</a>，也说到过<a href="https://www.diandian100.cn/49e03a2.html?highlight=%E8%A7%86%E5%9B%BE">DRF视图组件使用</a>，其中在DRF中提到过通用视图组件，刚开始不太明白，封装太多层了，直到后面看见Django自己的通用视图。</p>
+<a id="more"></a>
+
+<p>其实在Django的文档中，这部分内容还挺多了，我直接将所有类列在这里，大家有兴趣可以查看官方文档的介绍，我这里只说明常用的几种，做出这么多通用类无非是帮我们节省书写代码，看了下源码还是很容易懂的。</p>
+<ul>
+<li>基础视图<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/base/#view"><code>View</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/base/#templateview"><code>TemplateView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/base/#redirectview"><code>RedirectView</code></a></li>
+</ul>
+</li>
+<li>通用显示视图<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-display/#detailview"><code>DetailView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-display/#listview"><code>ListView</code></a></li>
+</ul>
+</li>
+<li>通用编辑视图<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-editing/#formview"><code>FormView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-editing/#createview"><code>CreateView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-editing/#updateview"><code>UpdateView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-editing/#deleteview"><code>DeleteView</code></a></li>
+</ul>
+</li>
+<li>通用日期视图<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-date-based/#archiveindexview"><code>ArchiveIndexView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-date-based/#yeararchiveview"><code>YearArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-date-based/#montharchiveview"><code>MonthArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-date-based/#weekarchiveview"><code>WeekArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-date-based/#dayarchiveview"><code>DayArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-date-based/#todayarchiveview"><code>TodayArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/generic-date-based/#datedetailview"><code>DateDetailView</code></a></li>
+</ul>
+</li>
+<li>基于类的视图混合<ul>
+<li>简单的mixins<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-simple/#contextmixin"><code>ContextMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-simple/#templateresponsemixin"><code>TemplateResponseMixin</code></a></li>
+</ul>
+</li>
+<li>单对象混合<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-single-object/#singleobjectmixin"><code>SingleObjectMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-single-object/#singleobjecttemplateresponsemixin"><code>SingleObjectTemplateResponseMixin</code></a></li>
+</ul>
+</li>
+<li>多个对象混合<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-multiple-object/#multipleobjectmixin"><code>MultipleObjectMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-multiple-object/#multipleobjecttemplateresponsemixin"><code>MultipleObjectTemplateResponseMixin</code></a></li>
+</ul>
+</li>
+<li>编辑混合<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-editing/#formmixin"><code>FormMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-editing/#modelformmixin"><code>ModelFormMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-editing/#processformview"><code>ProcessFormView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-editing/#deletionmixin"><code>DeletionMixin</code></a></li>
+</ul>
+</li>
+<li>基于日期的混合<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-date-based/#yearmixin"><code>YearMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-date-based/#monthmixin"><code>MonthMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-date-based/#daymixin"><code>DayMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-date-based/#weekmixin"><code>WeekMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-date-based/#datemixin"><code>DateMixin</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/mixins-date-based/#basedatelistview"><code>BaseDateListView</code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>基于类的通用视图-扁平化索引<ul>
+<li>简单的通用视图<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#view"><code>View</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#templateview"><code>TemplateView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#redirectview"><code>RedirectView</code></a></li>
+</ul>
+</li>
+<li>详情视图<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#detailview"><code>DetailView</code></a></li>
+</ul>
+</li>
+<li>列表视图<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#listview"><code>ListView</code></a></li>
+</ul>
+</li>
+<li>编辑视图<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#formview"><code>FormView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#createview"><code>CreateView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#updateview"><code>UpdateView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#deleteview"><code>DeleteView</code></a></li>
+</ul>
+</li>
+<li>基于日期的视图<ul>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#archiveindexview"><code>ArchiveIndexView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#yeararchiveview"><code>YearArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#montharchiveview"><code>MonthArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#weekarchiveview"><code>WeekArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#dayarchiveview"><code>DayArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#todayarchiveview"><code>TodayArchiveView</code></a></li>
+<li><a href="https://docs.djangoproject.com/zh-hans/3.1/ref/class-based-views/flattened-index/#datedetailview"><code>DateDetailView</code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="常用视图类"><a href="#常用视图类" class="headerlink" title="常用视图类"></a>常用视图类</h3><table>
+<thead>
+<tr>
+<th>类名</th>
+<th>功能</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>View</td>
+<td>基本View, 可以在任何时候使用</td>
+<td>见后面详细介绍</td>
+</tr>
+<tr>
+<td>RedirectView</td>
+<td>重新定向到其他URL</td>
+<td>将访问”/log-in/“的用户重新定向到”/login/“</td>
+</tr>
+<tr>
+<td>TemplateView</td>
+<td>显示Django HTML template</td>
+<td>一般网站中使用模板显示的页</td>
+</tr>
+<tr>
+<td>ListView</td>
+<td>显示对象列表</td>
+<td>文章列表页</td>
+</tr>
+<tr>
+<td>DetailView</td>
+<td>显示对象详情</td>
+<td>文章详细页</td>
+</tr>
+<tr>
+<td>FormView</td>
+<td>提交From</td>
+<td>网站联系我们或emai订阅form</td>
+</tr>
+<tr>
+<td>CreateView</td>
+<td>创建对象</td>
+<td>创建新文章页</td>
+</tr>
+<tr>
+<td>UpdateView</td>
+<td>更新对象</td>
+<td>修改文章页</td>
+</tr>
+<tr>
+<td>DeleteView</td>
+<td>删除对象</td>
+<td>删除文章页</td>
+</tr>
+<tr>
+<td>Generic date views</td>
+<td>显示一段时间内的对象</td>
+<td>按时间归类的博客</td>
+</tr>
+</tbody></table>
+<h3 id="ListView视图"><a href="#ListView视图" class="headerlink" title="ListView视图"></a>ListView视图</h3><p>表示对象列表的一个页面</p>
+<h4 id="属性"><a href="#属性" class="headerlink" title="属性"></a><strong>属性</strong></h4><ul>
+<li><em>model</em>: 指定模型</li>
+<li><em>tempalta_name</em>:模板文件</li>
+<li><em>queryset</em>:指定一个经过过滤的对象列表,将取代<code>model</code>提供的值</li>
+<li><em>context_object_name</em>: 指定要在上下文中使用的变量的名称（默认目标对象名为：object_list）</li>
+</ul>
+<h4 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h4><ul>
+<li><em>get_queryset()</em>:获取此视图的对象列表.必须是可迭代或者可以使查询集.默认返回<code>queryset</code>属性.可以通过<strong>重写</strong>该方法实现动态过滤.让这种方式能够工作的关键点,在于当类视图被调用时,各种有用的对象被存储在<code>self</code>上,同<code>request(self.request)</code>一样,其中包含了从URLconf中获取到的位置参数(<code>self.args</code>)和关键字参数(<code>self.kwargs</code>).</li>
+<li><em>get_context_data(**kwargs)</em>: 返回显示对象的上下文数据,通过<strong>覆盖</strong>该方法返回额外的上下文</li>
+</ul>
+<h4 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h4><h5 id="不指定模型显示列表"><a href="#不指定模型显示列表" class="headerlink" title="不指定模型显示列表"></a>不指定模型显示列表</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArticleListView</span>(<span class="params">ListView</span>):</span></span><br><span class="line">    template_name = <span class="string">&quot;blog/index.html&quot;</span></span><br><span class="line">    <span class="comment"># 上下文对象名</span></span><br><span class="line">    context_object_name = <span class="string">&quot;article_list&quot;</span></span><br><span class="line">    </span><br><span class="line">		<span class="comment"># 返回对象列表</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span>(<span class="params">self</span>):</span></span><br><span class="line">        articles= Article.objects.all()</span><br><span class="line">        <span class="keyword">return</span> articles</span><br><span class="line">		</span><br><span class="line">    <span class="comment"># 返回上下文对象(以下操作返回给模板了两个对象：article_list列表对象；author对象)</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_context_data</span>(<span class="params">self, **kwargs</span>):</span></span><br><span class="line">        kwargs[<span class="string">&#x27;author&#x27;</span>] = <span class="string">&#x27;托小尼&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> super(IndexView, self).get_context_data(**kwargs)</span><br></pre></td></tr></table></figure>
+
+<p>模板调用</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">h1</span>&gt;</span></span><br><span class="line">  &#123;&#123; author &#125;&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line">&#123;% for article in article_list %&#125;</span><br><span class="line">  <span class="tag">&lt;<span class="name">tr</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">td</span>&gt;</span>&#123;&#123; article.title &#125;&#125;<span class="tag">&lt;/<span class="name">td</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">td</span>&gt;</span>&#123;&#123; data.update_time &#125;&#125;<span class="tag">&lt;/<span class="name">td</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="指定模型显示列表"><a href="#指定模型显示列表" class="headerlink" title="指定模型显示列表"></a>指定模型显示列表</h5><p>以下代码我们指定了它的模型对象，所以就没有必要在用get_queryset()去返回了，除非需要重新过滤数据。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArticleListView</span>(<span class="params">ListView</span>):</span></span><br><span class="line">  	<span class="comment"># 指定模型对象</span></span><br><span class="line">  	model = <span class="string">&quot;ArticleModel&quot;</span></span><br><span class="line">    template_name = <span class="string">&quot;article/index.html&quot;</span></span><br><span class="line">    <span class="comment"># 返回上下文对象(以下操作返回给模板了两个对象：article_list列表对象；author对象)</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_context_data</span>(<span class="params">self, **kwargs</span>):</span></span><br><span class="line">        kwargs[<span class="string">&#x27;author&#x27;</span>] = <span class="string">&#x27;托小尼&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> super(IndexView, self).get_context_data(**kwargs)</span><br></pre></td></tr></table></figure>
+
+<p>模板调用</p>
+<p>视图中我们没有定义列表对象context_object_name，所以模板中默认要使用object_list。</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">h1</span>&gt;</span></span><br><span class="line">  &#123;&#123; author &#125;&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line">&#123;% for article in object_list %&#125;</span><br><span class="line">  <span class="tag">&lt;<span class="name">tr</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">td</span>&gt;</span>&#123;&#123; article.title &#125;&#125;<span class="tag">&lt;/<span class="name">td</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">td</span>&gt;</span>&#123;&#123; data.update_time &#125;&#125;<span class="tag">&lt;/<span class="name">td</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="FormView视图"><a href="#FormView视图" class="headerlink" title="FormView视图"></a>FormView视图</h3><p>用于提交表单，其实这个就是CreateView和UpdateView的低配版，大概看了下源码，差别就是FromView提交表单验证通过后直接跳转到指定视图了，而后者则是执行了数据库添加或更新操作。</p>
+<p>前提说下我们这里定义过了form组件类，所以别再疑惑我从哪儿来的ArticleForm类。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArticleCreateView</span>(<span class="params">FormView</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;添加移民类型&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 表单组件类</span></span><br><span class="line">    form_class = ArticleForm</span><br><span class="line">    <span class="comment"># 模板文件</span></span><br><span class="line">    template_name = <span class="string">&#x27;article/type_create.html&#x27;</span></span><br><span class="line">    <span class="comment"># 成功跳转页</span></span><br><span class="line">    success_url = reverse_lazy(<span class="string">&#x27;article:list&#x27;</span>)</span><br><span class="line">		</span><br><span class="line">    <span class="comment"># 验证通过方法</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">form_valid</span>(<span class="params">self, form</span>):</span></span><br><span class="line">        <span class="comment"># 添加表单数据至数据表中</span></span><br><span class="line">        Article.objects.create(**form.cleaned_data)</span><br><span class="line">        <span class="comment"># 传递成功的闪现消息给模板</span></span><br><span class="line">        messages.success(self.request, <span class="string">&#x27;哈哈哈，添加成功&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> super().form_valid(form)</span><br></pre></td></tr></table></figure>
+
+<p>模板</p>
+
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">method</span>=<span class="string">&quot;post&quot;</span> <span class="attr">novalidate</span>&gt;</span></span><br><span class="line">                &#123;% if form.errors %&#125;</span><br><span class="line">                    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;alert alert-danger alert-dismissible fade show&quot;</span> <span class="attr">role</span>=<span class="string">&quot;alert&quot;</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">ul</span> <span class="attr">class</span>=<span class="string">&quot;list-unstyled&quot;</span>&gt;</span></span><br><span class="line">                            &#123;% for err in form.errors.values %&#125;</span><br><span class="line">                                <span class="tag">&lt;<span class="name">li</span>&gt;</span>&#123;&#123; err &#125;&#125;<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">                            &#123;% endfor %&#125;</span><br><span class="line">                        <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">button</span> <span class="attr">type</span>=<span class="string">&quot;button&quot;</span> <span class="attr">class</span>=<span class="string">&quot;close&quot;</span> <span class="attr">data-dismiss</span>=<span class="string">&quot;alert&quot;</span> <span class="attr">aria-label</span>=<span class="string">&quot;Close&quot;</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">span</span> <span class="attr">aria-hidden</span>=<span class="string">&quot;true&quot;</span>&gt;</span><span class="symbol">&amp;times;</span><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">                &#123;% endif %&#125;</span><br><span class="line">                &#123;% csrf_token %&#125;</span><br><span class="line">                &#123;% for field in form %&#125;</span><br><span class="line">                    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;form-group&quot;</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">&quot;&#123;&#123; field.id_for_label &#125;&#125;&quot;</span>&gt;</span>&#123;&#123; field.label &#125;&#125;<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">                        &#123;&#123; field &#125;&#125;</span><br><span class="line">                    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line">                &#123;% endfor %&#125;</span><br><span class="line">                <span class="tag">&lt;<span class="name">button</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">class</span>=<span class="string">&quot;btn btn-primary&quot;</span>&gt;</span>添加<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我这里使用的是bootcss，所以自定义了样式，如用默认样式，直接</p>
+
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">method</span>=<span class="string">&quot;post&quot;</span>&gt;</span>&#123;% csrf_token %&#125;</span><br><span class="line">    &#123;&#123; form.as_p &#125;&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Send message&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="CreateView视图"><a href="#CreateView视图" class="headerlink" title="CreateView视图"></a>CreateView视图</h3><p>这个真的跟FormView差别不大，直接上例子吧。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArticleCreateView</span>(<span class="params">CreateView</span>):</span></span><br><span class="line">    form_class = ArticleForm</span><br><span class="line">    template_name = <span class="string">&#x27;article/type_create.html&#x27;</span></span><br><span class="line">    success_url = reverse_lazy(<span class="string">&#x27;article:list&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">form_valid</span>(<span class="params">self, form</span>):</span></span><br><span class="line">        <span class="comment"># 传递成功的闪现消息给模板</span></span><br><span class="line">        messages.success(self.request, <span class="string">&#x27;哈哈哈，我也照样行&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> super().form_valid(form)</span><br></pre></td></tr></table></figure>
+
+<p>CreateView中的form_valid已经帮我们把数据保存至数据库了，如果你不需要像我一样添加成功输出提示，那就完全没必要重写form_valid方法了。</p>
+<blockquote>
+<p>注意：此处有坑</p>
+<ol>
+<li>success_url复制为跳转链接地址，可以直接字符串写链接地址，可以使用reverse_lazy()反向解析，但是直接使用reverse()会报错；</li>
+<li>form_class中定义的ArticleForm继承的是forms.ModelForm，如果直接继承forms.Form同样会报错，两处出错有兴趣的朋友可以自己查下原因哈。</li>
+</ol>
+</blockquote>
+<p>后面在使用通用视图的时候感受到不是太灵便，索性还是自定义cbv吧。仁者见仁智者见智吧，喜欢用这种方式的参考如下详细的介绍。</p>
+<h3 id="详解通用视图"><a href="#详解通用视图" class="headerlink" title="详解通用视图"></a>详解通用视图</h3><p>Class-based views是Django为解决建站过程中的常见的呈现模式而建立的。具有如下几个原则：</p>
+<ul>
+<li>代码越少越好</li>
+<li>永远不要重复代码</li>
+<li>View应当只包含呈现逻辑, 不应包括业务逻辑</li>
+<li>保持view逻辑清晰简单</li>
+<li>不要将CBVs用作403, 404, 500的错误处理程序</li>
+<li>保持mixin简单明了</li>
+</ul>
+<p>django自带的view如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th>类名</th>
+<th>功能</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>View</td>
+<td>基本View, 可以在任何时候使用</td>
+<td>见后面详细介绍</td>
+</tr>
+<tr>
+<td>RedirectView</td>
+<td>重新定向到其他URL</td>
+<td>将访问”/log-in/“的用户重新定向到”/login/“</td>
+</tr>
+<tr>
+<td>TemplateView</td>
+<td>显示Django HTML template</td>
+<td>一般网站中使用模板显示的页</td>
+</tr>
+<tr>
+<td>ListView</td>
+<td>显示对象列表</td>
+<td>文章列表页</td>
+</tr>
+<tr>
+<td>DetailView</td>
+<td>显示对象详情</td>
+<td>文章详细页</td>
+</tr>
+<tr>
+<td>FormView</td>
+<td>提交From</td>
+<td>网站联系我们或emai订阅form</td>
+</tr>
+<tr>
+<td>CreateView</td>
+<td>创建对象</td>
+<td>创建新文章页</td>
+</tr>
+<tr>
+<td>UpdateView</td>
+<td>更新对象</td>
+<td>修改文章页</td>
+</tr>
+<tr>
+<td>DeleteView</td>
+<td>删除对象</td>
+<td>删除文章页</td>
+</tr>
+<tr>
+<td>Generic date views</td>
+<td>显示一段时间内的对象</td>
+<td>按时间归类的博客</td>
+</tr>
+</tbody></table>
+<h4 id="ListView"><a href="#ListView" class="headerlink" title="ListView"></a>ListView</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201020102102.png"></p>
+<p>表示对象列表的一个页面.<br> 执行这个视图的时候,<code>self.object_list</code>将包含视图正在操作的对象列表(通常是一个查询集,但不是必须).<br><strong>属性:</strong></p>
+<ul>
+<li><em>model</em>: 指定模型</li>
+<li><em>tempalta_name</em>:模板文件</li>
+<li><em>queryset</em>:指定一个经过过滤的对象列表,将取代<code>model</code>提供的值</li>
+<li><em>context_object_name</em>: 指定要在上下文中使用的变量的名称</li>
+</ul>
+<p><strong>方法:</strong></p>
+<ul>
+<li><em>get_queryset()</em>:获取此视图的对象列表.必须是可迭代或者可以使查询集.默认返回<code>queryset</code>属性.可以通过<strong>重写</strong>该方法实现动态过滤.让这种方式能够工作的关键点,在于当类视图被调用时,各种有用的对象被存储在<code>self</code>上,同<code>request(self.request)</code>一样,其中包含了从URLconf中获取到的位置参数(<code>self.args</code>)和关键字参数(<code>self.kwargs</code>).</li>
+<li><em>get_context_data(**kwargs)</em>: 返回显示对象的上下文数据,通过<strong>覆盖</strong>该方法返回额外的上下文</li>
+</ul>
+<h4 id="DetailView"><a href="#DetailView" class="headerlink" title="DetailView"></a>DetailView</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201020102216.png"></p>
+<p>执行这个视图的时候,<code>self.object</code>将包含视图正在操作的对象.<br><strong>属性:</strong></p>
+<ul>
+<li><em>model</em>: 视图要显示的模型</li>
+<li><em>queryset</em>: 表示对象的一个查询集.<code>queryset</code>的值优先于<code>model</code>的值.</li>
+<li><em>template_name</em>: 字符串表示的模板名称.</li>
+<li><em>context_object_name</em>: 指定在上下文中使用的变量的名称.</li>
+<li><em>pk_url_kwarg</em>: URLconf中,包含逐渐的关键字参数的名称.默认为’pk’.</li>
+<li><em>get_context_data</em>:返回显示对象的上下文数据.</li>
+</ul>
+<p><strong>方法:</strong></p>
+<ul>
+<li><em>get_queryset()</em>:返回用来获取本视图显示对象的<code>queryset</code>.如果设置了<code>queryset</code>属性,<code>get_queryset()</code>默认返回它的值.</li>
+<li><em>get_object(queryset=None)</em>:返回该视图要显示的单个对象.如果提供了<code>queryset</code>,该<code>queryset</code>将作为对象的查询源,否则,将使用<code>get_queryset()</code>.<code>get_object()</code>从视图的所有参数中查找<code>pk_url_kwarg</code>参数,如果找到了这个参数,该方法使用这个参数的值执行一个基于逐渐的查询.如果这个参数没有找到,该方法查找<code>slug_url_kwarg</code>参数,使用<code>slug_field</code>字段执行针对slug的查询.当<code>query_pk_and_slug</code>为<code>True</code>时,<code>get_object()</code>将使用主键和slug执行查询.</li>
+<li><em>get_context_data(**kwargs)</em>:返回显示对象的上下文数据.这个方法的基本实现需要<code>object</code>属性被视图赋值(即使是None).它返回一个包含这些内容的字典:<br>    <code>object</code>:这个视图显示的对象(<code>self.object</code>)<br>   <code>context_object_name</code>:<code>self.object</code>也将存储在<code>get_context_object_name()</code>返回的名称中,该名称默认为模型的小写名称.</li>
+</ul>
+<h4 id="FormView"><a href="#FormView" class="headerlink" title="FormView"></a>FormView</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201020102302.png"></p>
+<p>显示表单的视图,验证错误时,重新显示表单并显示错误信息;成功时,重定向到一个新的URL.<br><strong>属性:</strong></p>
+<ul>
+<li><p>*form_class:*要实例化的Form类.</p>
+</li>
+<li><p>*success_url:*表单成功处理后重定向到的URL.</p>
+</li>
+<li><p>*tamplate_name:*字符串表示的模板名称.</p>
+<p><strong>方法:</strong></p>
+</li>
+<li><p>*get_success_url():*决定在表单成功验证后重定向到的URL,默认返回<code>success_url</code>.</p>
+</li>
+<li><p>*form_valid(form):*在表单验证成功后调用该方法(注意并没有对数据进行操作,例如保存!),并重定向到<code>get_success_url()</code>,可以覆盖该方法在以上行为之间添加额外的动作.该方法必须返回一个<code>HttpResponse</code>.</p>
+</li>
+<li><p>*form_invalid(form):*如果表单验证失败,则使用已填充的表单数据和错误信息重新渲染上下文.</p>
+</li>
+<li><p>*get_context_data(**kwargs):*返回显示对象的上下文数据.</p>
+</li>
+</ul>
+<h4 id="CreateView"><a href="#CreateView" class="headerlink" title="CreateView"></a>CreateView</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201020102338.png"></p>
+<p>显示用于创建对象的表单的视图,通过验证错误信息重新显示视图,并且保存对象.<br><strong>属性:</strong></p>
+<p><em>tamplate_name:</em></p>
+<p><em>form_class:</em></p>
+<p>*fields:*字段名称列表,其解释方式与<code>ModelForm</code>的<code>Meta.fields</code>相同.如果你是自动生成表单类,那么该属性不能省略.</p>
+<p><em>success_url:</em></p>
+<p><em>model:</em></p>
+<p><em>queryset:</em></p>
+<p><em>context_object_name:</em></p>
+<p><em>pk_url_kwarg:</em></p>
+<p><strong>方法:</strong></p>
+<p><em>get_queryset():</em></p>
+<p><em>get_object():</em></p>
+<p><em>form_valid():</em></p>
+<p><em>get_context_data(**kwargs):</em><br> (未填写属性和方法的使用同上)</p>
+<h4 id="UpdateView"><a href="#UpdateView" class="headerlink" title="UpdateView"></a>UpdateView</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201020102412.png"></p>
+<p>显示用于编辑现有对象的表单的视图,重新显示具有验证错误信息的视图,并且保存对象.这里使用从对象模型自动生成的表单(除非手动制定表单类).<br> 该视图用法与CreateView基本相同,仅在BaseUpdateView中对<code>get()</code>和<code>post()</code>的内部实现有区别.</p>
+<h4 id="DeleteView"><a href="#DeleteView" class="headerlink" title="DeleteView"></a>DeleteView</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201020102440.png"></p>
+<p>显示确认页面并删除现有对象的视图.仅当请求方法为POST时,才会删除给定的内容.如果此视图是通过GET提取的,它将显示一个确认页面,其中包含POST到同一网址的表单.<br><strong>属性:</strong></p>
+<ul>
+<li><p><em>tamplate_name:</em></p>
+</li>
+<li><p><em>success_url:</em></p>
+</li>
+<li><p><em>model:</em></p>
+</li>
+<li><p><em>queryset:</em></p>
+</li>
+<li><p><em>context_object_name:</em></p>
+</li>
+<li><p><em>pk_url_kwarg:</em></p>
+<p> *<em>方法:</em></p>
+</li>
+<li><p><em>get_object():</em></p>
+</li>
+<li><p><em>get_queryset():</em></p>
+</li>
+<li><p><em>get_context_data(**kwargs):</em></p>
+</li>
+<li><p><em>delete(request,</em> args, **kwargs):*在获取到的对象上调用<code>delete()</code>方法,然后重定向到<code>success_url</code>.</p>
+</li>
+</ul>
+<h4 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h4><p>1、创建django工程，创建名为crud的app,此处略过</p>
+<p>2、 修改models.py</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">employee</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    id = models.IntegerField(primary_key=<span class="literal">True</span>)</span><br><span class="line">    name = models.CharField(max_length=<span class="number">30</span>)</span><br><span class="line">    address = models.CharField(max_length=<span class="number">60</span>)</span><br><span class="line">    city = models.CharField(max_length=<span class="number">60</span>)</span><br><span class="line">    email = models.EmailField(max_length=<span class="number">30</span>)</span><br><span class="line">    phone = models.CharField()</span><br><span class="line">    wechat = models.CharField(max_length=<span class="number">30</span>)</span><br><span class="line">    QQ = models.CharField()</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__unicode__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self.name</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        ordering = [<span class="string">&quot;-id&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>3、配置</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">INSTALLED_APPS = [</span><br><span class="line">    <span class="string">&#x27;django.contrib.admin&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;django.contrib.auth&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;django.contrib.contenttypes&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;django.contrib.sessions&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;django.contrib.messages&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;django.contrib.staticfiles&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;crud&#x27;</span>,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>4、数据迁移</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">python manage.py makemigrations crud</span><br><span class="line">python manage.py migrate crud</span><br></pre></td></tr></table></figure>
+
+<p>5、修改urls,views</p>
+<p>crud中的urls</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.conf.urls <span class="keyword">import</span> url</span><br><span class="line"><span class="keyword">from</span> crud <span class="keyword">import</span> views</span><br><span class="line"></span><br><span class="line">urlpatterns = [</span><br><span class="line">    url(<span class="string">r&#x27;^$&#x27;</span>, views.EmployeeList.as_view(), name=<span class="string">&#x27;employee_list&#x27;</span>),</span><br><span class="line">    url(<span class="string">r&#x27;^add&#x27;</span>, views.EmployeeCreate.as_view(), name=<span class="string">&#x27;employee_add&#x27;</span>),</span><br><span class="line">    url(<span class="string">r&#x27;^update/(?P&lt;pk&gt;\d+)$&#x27;</span>, views.EmployeeUpdate.as_view(), name=<span class="string">&#x27;employee_update&#x27;</span>),</span><br><span class="line">    url(<span class="string">r&#x27;^delete/(?P&lt;pk&gt;\d+)$&#x27;</span>, views.EmployeeDelete.as_view(), name=<span class="string">&#x27;employee_delete&#x27;</span>),</span><br><span class="line">    url(<span class="string">r&#x27;employee_detail/(?P&lt;pk&gt;\d+)/$&#x27;</span>, views.EmployeeDetail.as_view(), name=<span class="string">&#x27;employee_detail&#x27;</span>),</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>工程中urls</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.conf.urls <span class="keyword">import</span> url, include</span><br><span class="line"><span class="keyword">from</span> django.contrib <span class="keyword">import</span> admin</span><br><span class="line"></span><br><span class="line">urlpatterns = [</span><br><span class="line">    url(<span class="string">r&#x27;^admin/&#x27;</span>, admin.site.urls),</span><br><span class="line">    url(<span class="string">r&#x27;^crud/&#x27;</span>, include(<span class="string">&#x27;crud.urls&#x27;</span>)),</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> __future__ <span class="keyword">import</span> unicode_literals</span><br><span class="line"><span class="keyword">from</span> django.shortcuts <span class="keyword">import</span> render, redirect</span><br><span class="line"><span class="comment"># Create your views here.</span></span><br><span class="line"><span class="keyword">from</span> django.http <span class="keyword">import</span> HttpResponse, HttpResponseRedirect</span><br><span class="line"><span class="keyword">from</span> django.views.generic <span class="keyword">import</span> TemplateView,ListView</span><br><span class="line"><span class="keyword">from</span> django.utils <span class="keyword">import</span> timezone</span><br><span class="line"><span class="keyword">from</span> django.views.generic.detail <span class="keyword">import</span> DetailView</span><br><span class="line"><span class="keyword">from</span> django.views.generic.edit <span class="keyword">import</span> CreateView, UpdateView, DeleteView</span><br><span class="line"><span class="keyword">from</span> django.core.urlresolvers <span class="keyword">import</span> reverse_lazy</span><br><span class="line"><span class="keyword">from</span> crud.models <span class="keyword">import</span> employee</span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EmployeeList</span>(<span class="params">ListView</span>):</span></span><br><span class="line">    model = employee</span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EmployeeCreate</span>(<span class="params">CreateView</span>):</span></span><br><span class="line">    model = employee</span><br><span class="line">    success_url = reverse_lazy(<span class="string">&#x27;employee_list&#x27;</span>)</span><br><span class="line">    fields = [<span class="string">&#x27;id&#x27;</span>, <span class="string">&#x27;name&#x27;</span>, <span class="string">&#x27;address&#x27;</span>, <span class="string">&#x27;city&#x27;</span>, <span class="string">&#x27;email&#x27;</span>, <span class="string">&#x27;phone&#x27;</span>, <span class="string">&#x27;wechat&#x27;</span>, <span class="string">&#x27;QQ&#x27;</span>]</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">add</span>(<span class="params">request</span>):</span></span><br><span class="line">        form = employee(request.POST <span class="keyword">or</span> <span class="literal">None</span>)</span><br><span class="line">        <span class="keyword">if</span> form.is_valid():</span><br><span class="line">            instance.save()</span><br><span class="line">        context = &#123;</span><br><span class="line">            <span class="string">&#x27;form&#x27;</span>: form,</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">#如果没有有效提交，则仍留在原来页面</span></span><br><span class="line">        <span class="keyword">return</span> render(request, <span class="string">&#x27;employee_list.html&#x27;</span>,  context)</span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EmployeeUpdate</span>(<span class="params">UpdateView</span>):</span></span><br><span class="line">    model = employee</span><br><span class="line">    success_url = reverse_lazy(<span class="string">&#x27;employee_list&#x27;</span>)</span><br><span class="line">    fields = [<span class="string">&#x27;id&#x27;</span>, <span class="string">&#x27;name&#x27;</span>, <span class="string">&#x27;address&#x27;</span>,<span class="string">&#x27;city&#x27;</span>, <span class="string">&#x27;email&#x27;</span>, <span class="string">&#x27;phone&#x27;</span>,<span class="string">&#x27;wechat&#x27;</span>,<span class="string">&#x27;QQ&#x27;</span>]</span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EmployeeDelete</span>(<span class="params">DeleteView</span>):</span></span><br><span class="line">    model = employee</span><br><span class="line">    success_url = reverse_lazy(<span class="string">&#x27;employee_list&#x27;</span>)</span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EmployeeDetail</span>(<span class="params">DetailView</span>):</span></span><br><span class="line">    model = employee   <span class="comment">#将 model 指定为Publisher，告诉 Django 我要获取的模型是 Publisher。</span></span><br><span class="line">    context_object_name = <span class="string">&#x27;employee_detail&#x27;</span>   <span class="comment">#指定获取的模型列表数据保存的变量名。这个变量会被传递给模板。</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_context_data</span>(<span class="params">self, **kwargs</span>):</span></span><br><span class="line">        context = super(EmployeeDetail, self).get_context_data(**kwargs)</span><br><span class="line">        context[<span class="string">&#x27;now&#x27;</span>] = timezone.now()</span><br><span class="line">        <span class="keyword">return</span> context</span><br></pre></td></tr></table></figure>
+
+<p>6、新建模板<br> employee_list.html</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">    &#123;% for emp in object_list %&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="name">li</span>&gt;</span>&#123;&#123; emp.id &#125;&#125; &amp;nbsp &amp;nbsp &#123;&#123; emp.name &#125;&#125; &amp;nbsp &amp;nbsp&#123;&#123; emp.address &#125;&#125;&amp;nbsp &amp;nbsp&#123;&#123; emp.city &#125;&#125; &amp;nbsp &amp;nbsp</span><br><span class="line">        &#123;&#123; emp.email &#125;&#125; &amp;nbsp &amp;nbsp&#123;&#123; emp.phone &#125;&#125;&amp;nbsp &amp;nbsp&#123;&#123; emp.wechat &#125;&#125; &amp;nbsp &amp;nbsp&#123;&#123; emp.QQ &#125;&#125;:</span><br><span class="line">    <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;&#123;% url &quot;</span><span class="attr">employee_update</span>&quot; <span class="attr">emp.id</span> %&#125;&quot;&gt;</span>修改<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;&#123;% url &quot;</span><span class="attr">employee_delete</span>&quot; <span class="attr">emp.id</span> %&#125;&quot;&gt;</span>删除<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">li</span>&gt;</span>&amp;nbsp</span><br><span class="line">    &#123;% endfor %&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line"> </span><br><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;&#123;% url &quot;</span><span class="attr">employee_add</span>&quot; %&#125;&quot;&gt;</span>新增<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>employee_form.html</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Title<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">form</span> <span class="attr">method</span>=<span class="string">&quot;post&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">table</span>&gt;</span></span><br><span class="line">            &#123;% csrf_token %&#125;</span><br><span class="line">            &#123;&#123; form &#125;&#125;</span><br><span class="line">        <span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Submit&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>employee_confirm_delete.html</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">method</span>=<span class="string">&quot;post&quot;</span>&gt;</span>&#123;% csrf_token %&#125;</span><br><span class="line">确实要删除 &quot;&#123;&#123; object &#125;&#125;&quot; ?</span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Submit&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>employee_detail.html</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>你好，&#123;&#123; object.name &#125;&#125;<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">h2</span>&gt;</span>工号：&#123;&#123; object.id &#125;&#125;<span class="tag">&lt;/<span class="name">h2</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>姓名：&#123;&#123; object.name &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>邮箱地址：&#123;&#123; object.email &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>所在城市: &#123;&#123; object.city &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>电话号码: &#123;&#123; object.phone &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>详细地址: &#123;&#123; object.address &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>微信: &#123;&#123; object.wechat &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>QQ: &#123;&#123; object.QQ &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>7、启动服务python manage.py runserver</p>
+<p>浏览器中输入 <span class="exturl" data-url="aHR0cDovLzEyNy4wLjAuMTo4MDAwL2NydWQv">http://127.0.0.1:8000/crud/<i class="fa fa-external-link-alt"></i></span> 即可对员工进行增加、删除、修改</p>
+<p>—–UpdateView和CreateView—–</p>
+<p>我们有了Project和Schedule列表显示后，现在需要添加新增和修改的操作。可以直接用Django通用视图里的UpdateView和CreateView。根据官网文档的例子，我们先在projtrack/views.py中添加项目新增和修改视图的代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># projtrack/views.py</span></span><br><span class="line">...</span><br><span class="line"><span class="comment"># 修改项目视图</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProjUpdView</span>(<span class="params">generic.UpdateView</span>):</span></span><br><span class="line">    model = Project</span><br><span class="line">    fields = [<span class="string">&#x27;project_name&#x27;</span>, <span class="string">&#x27;description&#x27;</span>, <span class="string">&#x27;project_status&#x27;</span>]</span><br><span class="line">    template_name = <span class="string">&#x27;projtrack/update_form.html&#x27;</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># 新增项目视图</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProjNewView</span>(<span class="params">generic.CreateView</span>):</span></span><br><span class="line">    model = Project</span><br><span class="line">    fields = [<span class="string">&#x27;project_name&#x27;</span>, <span class="string">&#x27;description&#x27;</span>, <span class="string">&#x27;project_type&#x27;</span>, <span class="string">&#x27;project_status&#x27;</span>]</span><br><span class="line">    template_name = <span class="string">&#x27;projtrack/update_form.html&#x27;</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>因为编辑和新增页面的前端代码基本一样，我们在这里都指定了template为update_form。也可指定不同的模板。另外也可用template_name_suffix参数去指定模板。比如，如果设定template_name_suffix = ‘_create_form’， 则用到的模板将会是projtrack/project_create_form.html。</p>
+<p>这里projtrack/update_form.html代码如下：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&#123;% extends &quot;projtrack/index.html&quot; %&#125;</span><br><span class="line">&#123;% block body %&#125;</span><br><span class="line">&#123;% if user.is_authenticated %&#125;</span><br><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">method</span>=<span class="string">&quot;post&quot;</span>&gt;</span>&#123;% csrf_token %&#125;</span><br><span class="line">    &#123;&#123; form.as_p &#125;&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">class</span>=<span class="string">&quot;btn btn-default&quot;</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">value</span>=<span class="string">&quot;Update&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line">&#123;% endif %&#125;</span><br><span class="line">&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure>
+
+注意：
+
+  在所有的 POST 表单元素时，需要加上一个 {% csrf_token %} tag。这是Django提供的CSRF防护机制。
+   {{ form.as_p }} 表示渲染表单为一系列的p标签，每个p标签包含一个字段：
+
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">&quot;id_subject&quot;</span>&gt;</span>Subject:<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">&quot;id_subject&quot;</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">name</span>=<span class="string">&quot;subject&quot;</span> <span class="attr">maxlength</span>=<span class="string">&quot;100&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>其它form在模版中的渲染方式还包括：</p>
+<p>form.as_ul：渲染表单为一系列的li标签，每个li 标签包含一个字段<br> form.as_table：输出表单为一个HTML的table。<br> for field in form：通过迭代form，获取其中的所有field。field可引用的包括： ,  ,  。输出为field的label元素，输出为field的input，为field的errors元素（errors一般在form验证出错的时候显示）。<br> form.fieldname：直接将form作为一个dict，引用其每一个field，比如 引用form中的title这个field。这种方式一般用于form需要更加精准的样式的时候，逐个元素逐个元素的编排到html中。</p>
+<p>完成后可在页面上新增或修改项目信息。不过点击Update后会有一个报错：191989-055d8b7a362f2603.png</p>
+<p>意思是新增后修改完成后我们没有定义一个redirect的url去跳转。根据报错的提示，我们可以直接在视图下给success_url参数赋值，或在模型中去定义get_absolute_url()方法，去设置成功后跳转的url。这里我们在模型中添加：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># projtrack/model.py    </span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Project</span>(<span class="params">models.Model</span>):</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_absolute_url</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> reverse(<span class="string">&#x27;projtrack:project&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这样，在新增或修改项目成功就就跳转到项目列表页面</p>
+]]></content>
+      <categories>
+        <category>rd</category>
+        <category>python</category>
+        <category>django</category>
+      </categories>
+      <tags>
+        <tag>Django视图</tag>
+        <tag>通用视图</tag>
+        <tag>CreateView</tag>
+        <tag>ListView</tag>
+        <tag>UpdateView</tag>
       </tags>
   </entry>
 </search>
