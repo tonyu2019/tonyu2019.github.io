@@ -21157,7 +21157,7 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
   </entry>
   <entry>
     <title>Django之Jinja2模板配置错误</title>
-    <url>/de9dd21b.html</url>
+    <url>/5e05a414.html</url>
     <content><![CDATA[<p>jinja2是Flask作者开发的一个模板系统，起初是仿django模板的一个模板引擎，为Flask提供模板支持，由于其灵活，快速和安全等优点被广泛使用，所以很多人即使使用Django进行开发，也会选择使用jinja2.</p>
 <a id="more"></a>
 
@@ -21270,6 +21270,58 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
         <tag>uniapp打开淘宝</tag>
         <tag>uniapp打开第三方</tag>
         <tag>H5打开第三方</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>使用openssl进行证书格式转换</title>
+    <url>/c03e2218.html</url>
+    <content><![CDATA[<p>各类证书由于存储的内容不同（如是否包含公钥/私钥是否加密存储/单一证书或多证书等)、采用编码不同(DER/BASE64)、标准不同(如PEM/PKCS)，所以尽管X.509标准规定了证书内容规范，但证书文件还是五花八门。好在openssl对这些不同的标准都有着不错的支持，可以用来进行不同格式证书的转换。</p>
+<a id="more"></a>
+
+<p><strong>PEM–DER/CER(BASE64–DER编码的转换)</strong></p>
+<p>​     openssl x509 -outform der -in certificate.pem -out certificate.der </p>
+<p><strong>PEM–P7B(PEM–PKCS#7)</strong></p>
+<p>​     openssl crl2pkcs7 -nocrl -certfile certificate.cer -out certificate.p7b -certfile CACert.cer </p>
+<p><strong>PEM–PFX(PEM–PKCS#12)</strong></p>
+<p>​     openssl pkcs12 -export -out certificate.pfx -inkey privateKey.key -in certificate.crt -certfile CACert.crt </p>
+<p><strong>PEM–p12(PEM–PKCS#12)</strong></p>
+<p>​     openssl pkcs12 -export -out Cert.p12 -in Cert.pem -inkey key.pem </p>
+<p><strong>CER/DER–PEM(编码DER–BASE64)</strong></p>
+<p>​     openssl x509 -inform der -in certificate.cer -out certificate.pem </p>
+<p><strong>P7B–PEM(PKCS#7–PEM)</strong></p>
+<p>​     openssl pkcs7 -print_certs -in certificate.p7b -out certificate.cer </p>
+<p><strong>P7B–PFX(PKCS#7–PKCS#12)</strong></p>
+<p>​     openssl pkcs7 -print_certs -in certificate.p7b -out certificate.cer<br>​     openssl pkcs12 -export -in certificate.cer -inkey privateKey.key -out certificate.pfx -certfile CACert.cer </p>
+<p><strong>PFX/p12–PEM(PKCS#12–PEM)</strong></p>
+<p>​     openssl pkcs12 -in certificate.pfx -out certificate.cer<br>​     如无需加密pem中私钥，可以添加选项-nodes；<br>​     如无需导出私钥，可以添加选项-nokeys;  </p>
+<p><strong>PEM BASE64–X.509文本格式</strong></p>
+<p>​     openssl x509 -in Key.pem -text -out Cert.pem </p>
+<p><strong>PFX文件中提取私钥(.key)</strong></p>
+<p>​     openssl pkcs12 -in mycert.pfx -nocerts -nodes -out mycert.key </p>
+<p><strong>PEM–SPC</strong></p>
+<p>​     openssl crl2pkcs7 -nocrl -certfile venus.pem -outform DER -out venus.spc </p>
+<p><strong>PEM－－PVK（openssl 1.x开始支持）</strong></p>
+<p>​     openssl rsa -in mycert.pem -outform PVK -pvk-strong -out mypvk.pvk </p>
+<p><strong>PEM－－PVK</strong>（对于openssl 1.x之前的版本，可以下载<span class="exturl" data-url="aHR0cHM6Ly9zdXBwb3J0LmNvbW9kby5jb20vaW5kZXgucGhwP19tPWRvd25sb2FkcyZfYT12aWV3ZG93bmxvYWQmZG93bmxvYWRpdGVtaWQ9NzEmbmF2PTA=">pvk转换器<i class="fa fa-external-link-alt"></i></span>后通过以下命令完成）</p>
+<p>​     pvk -in ca.key -out ca.pvk -nocrypt -topvk</p>
+<p><strong>CRT－－CER</strong></p>
+<p>openssl x509 -in ca.crt -out server.cer -outform der</p>
+<p><strong>CER－－CRT</strong></p>
+<p>openssl x509 -inform PEM -in certificate.cer -out certificate.crt</p>
+]]></content>
+      <categories>
+        <category>os</category>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>ssl证书</tag>
+        <tag>使用openssl进行证书格式转换</tag>
+        <tag>cer转crt</tag>
+        <tag>crt转cer</tag>
+        <tag>ssl证书转换</tag>
+        <tag>openssl</tag>
+        <tag>openssl证书转换</tag>
+        <tag>证书转换</tag>
       </tags>
   </entry>
 </search>
