@@ -21418,4 +21418,217 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
         <tag>无状态设计</tag>
       </tags>
   </entry>
+  <entry>
+    <title>TCP网络应用程序开发流程回顾</title>
+    <url>/866c5c12.html</url>
+    <content><![CDATA[<p>之前的文章里已经说过这个问题，另外还举了一些实际应用中的例子，具体可以回顾<a href="https://www.diandian100.cn/aff6f399.html">python 网络编程三(网络基础)</a>、<a href="https://www.diandian100.cn/dd360d74.html">python 网络编程四(套接字（socket）初使用)</a>、<a href="https://www.diandian100.cn/b63f6362.html">python 网络编程socketserver原理示例</a>、<a href="https://www.diandian100.cn/1db3b21b.html">python 网络编程socket示例（远程ssh）</a>，我们这里再详细的把网络编程知识过一遍。</p>
+<a id="more"></a>
+
+<p>谈到网络编程离不开的名字IP、端口、socket、TCP等等，接下来挨个说吧。</p>
+<h3 id="IP"><a href="#IP" class="headerlink" title="IP"></a>IP</h3><h4 id="IP-地址的概念"><a href="#IP-地址的概念" class="headerlink" title="IP 地址的概念"></a>IP 地址的概念</h4><p>IP 地址就是<strong>标识网络中设备的一个地址</strong>，好比现实生活中的家庭地址。</p>
+<p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201113150418.png"></p>
+<h4 id="IP-地址的表现形式"><a href="#IP-地址的表现形式" class="headerlink" title="IP 地址的表现形式"></a>IP 地址的表现形式</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201113150533.png"></p>
+<ul>
+<li>IP 地址分为两类： <strong>IPv4</strong> 和 <strong>IPv6</strong></li>
+<li>IPv4 是目前使用的ip地址</li>
+<li>IPv6 是即将或已经投入使用的ip地址</li>
+<li>IPv4 是由点分十进制组成</li>
+<li>IPv6 是由冒号十六进制组成</li>
+</ul>
+<h4 id="IP-地址的作用"><a href="#IP-地址的作用" class="headerlink" title="IP 地址的作用"></a>IP 地址的作用</h4><p>IP 地址的作用是<strong>标识网络中唯一的一台设备的</strong>，也就是说通过IP地址能够找到网络中某台设备。</p>
+<p><strong>IP地址作用效果图:</strong></p>
+<p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201113150714.png"></p>
+<h4 id="查看-IP-地址"><a href="#查看-IP-地址" class="headerlink" title="查看 IP 地址"></a>查看 IP 地址</h4><ul>
+<li>Linux 和 mac OS 使用 <strong>ifconfig</strong> 这个命令</li>
+<li>Windows 使用 <strong>ipconfig</strong> 这个命令</li>
+</ul>
+<p><strong>说明:</strong></p>
+<p><strong>ifconfig</strong> 和 <strong>ipconfig</strong> 都是查看网卡信息的，网卡信息中包括这个设备对应的IP地址</p>
+<h4 id="检查网络是否正常"><a href="#检查网络是否正常" class="headerlink" title="检查网络是否正常"></a>检查网络是否正常</h4><p>检查网络是否正常使用 ping 命令</p>
+<ul>
+<li>ping <a href="http://www.diandian100.cn/">www.diandian100.cn</a> 检查是否能上公网</li>
+<li>ping 当前局域网的ip地址 检查是否在同一个局域网内</li>
+<li>ping 127.0.0.1 检查本地网卡是否正常</li>
+</ul>
+<h3 id="端口与端口号"><a href="#端口与端口号" class="headerlink" title="端口与端口号"></a>端口与端口号</h3><h4 id="端口"><a href="#端口" class="headerlink" title="端口"></a>端口</h4><p>端口是一种操作系统的可分配资源，有需要时进程会和某一端口绑定，绑定之后远程主机发给该端口的数据就能被相应进程接收，反之亦然。</p>
+<p>端口是传输数据的通道，是数据传输必经之路。</p>
+<h4 id="端口号"><a href="#端口号" class="headerlink" title="端口号"></a>端口号</h4><p>操作系统为了统一管理这么多端口，<strong>就对端口进行了编号</strong>，这就是端口号，<strong>端口号其实就是一个数字</strong>，好比我们现实生活中的门牌号,</p>
+<p>端口号有65536个。</p>
+<h4 id="端口和端口号的关系"><a href="#端口和端口号的关系" class="headerlink" title="端口和端口号的关系"></a>端口和端口号的关系</h4><p>端口号可以标识唯一的一个端口。</p>
+<h4 id="端口号的分类"><a href="#端口号的分类" class="headerlink" title="端口号的分类"></a>端口号的分类</h4><ul>
+<li>知名端口号</li>
+<li>动态端口号</li>
+</ul>
+<p><strong>知名端口号:</strong></p>
+<p>知名端口号是指<strong>众所周知的端口号，范围从0到1023。</strong></p>
+<ul>
+<li>这些端口号一般固定分配给一些服务，比如21端口分配给FTP(文件传输协议)服务，25端口分配给SMTP（简单邮件传输协议）服务，80端口分配给HTTP服务。</li>
+</ul>
+<p><strong>动态端口号:</strong></p>
+<p>一般程序员<strong>开发应用程序使用端口号称为动态端口号, 范围是从1024到65535。</strong></p>
+<ul>
+<li>如果程序员开发的程序没有设置端口号，操作系统会在动态端口号这个范围内随机生成一个给开发的应用程序使用。</li>
+<li>当运行一个程序默认会有一个端口号，当这个程序退出时，所占用的这个端口号就会被释放。</li>
+</ul>
+<h3 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h3><p>通过 IP 地址能够找到对应的设备，然后再通过端口号找到对应的端口，再通过端口把数据传输给应用程序，<strong>这里要注意，数据不能随便发送，在发送之前还需要选择一个对应的传输协议，保证程序之间按照指定的传输规则进行数据的通信，</strong> 而这个传输协议就是我们今天要说的的 TCP。</p>
+<h4 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h4><p>TCP 的英文全拼(Transmission Control Protocol)简称<strong>传输控制协议</strong>，它是一种<strong>面向连接的、可靠的、基于字节流的传输层通信协议</strong>。</p>
+<p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201113152131.png"></p>
+<p><strong>TCP 通信步骤:</strong></p>
+<ol>
+<li>创建连接</li>
+<li>传输数据</li>
+<li>关闭连接</li>
+</ol>
+<p>TCP 通信模型相当于生活中的’打电话‘，在通信开始之前，一定要先建立好连接，才能发送数据，通信结束要关闭连接。</p>
+<h4 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h4><ol>
+<li>面向连接<ul>
+<li>通信双方必须先建立好连接才能进行数据的传输，数据传输完成后，双方必须断开此连接，以释放系统资源。</li>
+</ul>
+</li>
+<li>可靠传输<ul>
+<li>TCP 采用发送应答机制</li>
+<li>超时重传</li>
+<li>错误校验</li>
+<li>流量控制和阻塞管理</li>
+</ul>
+</li>
+</ol>
+<h3 id="socket"><a href="#socket" class="headerlink" title="socket"></a>socket</h3><p>为了保证数据的完整性和可靠性我们使用 tcp 传输协议进行数据的传输，为了能够找到对应设备我们需要使用 ip 地址，为了区别某个端口的应用程序接收数据我们需要使用端口号，那么通信数据就是通过socket完成传输的。</p>
+<h4 id="概念-1"><a href="#概念-1" class="headerlink" title="概念"></a>概念</h4><p>socket (简称 套接字) 是<strong>进程之间通信一个工具</strong>，好比现实生活中的<strong>插座</strong>，所有的家用电器要想工作都是基于插座进行，<strong>进程之间想要进行网络通信需要基于这个 socket</strong>。</p>
+<p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201113152501.png"></p>
+<h4 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h4><p>负责<strong>进程之间的网络数据传输</strong>，好比数据的搬运工。</p>
+<h4 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h4><p>不夸张的说，只要跟<strong>网络相关的应用程序或者软件都使用到了 socket</strong> 。如QQ、微信、Chrome……</p>
+<h3 id="开发流程"><a href="#开发流程" class="headerlink" title="开发流程"></a>开发流程</h3><h4 id="TCP-网络应用程序开发流程的介绍"><a href="#TCP-网络应用程序开发流程的介绍" class="headerlink" title="TCP 网络应用程序开发流程的介绍"></a>TCP 网络应用程序开发流程的介绍</h4><p>TCP 网络应用程序开发分为:</p>
+<ul>
+<li>TCP 客户端程序开发</li>
+<li>TCP 服务端程序开发</li>
+</ul>
+<p><strong>说明:</strong></p>
+<p>客户端程序是指运行在<strong>用户设备上的程序</strong> 服务端程序是指运行在<strong>服务器设备上的程序</strong>，专门为客户端提供数据服务。</p>
+<h4 id="TCP-客户端程序开发流程的介绍"><a href="#TCP-客户端程序开发流程的介绍" class="headerlink" title="TCP 客户端程序开发流程的介绍"></a>TCP 客户端程序开发流程的介绍</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201113152738.png"></p>
+<p><strong>步骤说明:</strong></p>
+<ol>
+<li>创建客户端套接字对象</li>
+<li>和服务端套接字建立连接</li>
+<li>发送数据</li>
+<li>接收数据</li>
+<li>关闭客户端套接字</li>
+</ol>
+<h4 id="TCP-服务端程序开发流程的介绍"><a href="#TCP-服务端程序开发流程的介绍" class="headerlink" title="TCP 服务端程序开发流程的介绍"></a>TCP 服务端程序开发流程的介绍</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201113152813.png"></p>
+<p><strong>步骤说明:</strong></p>
+<ol>
+<li>创建服务端端套接字对象</li>
+<li>绑定端口号</li>
+<li>设置监听</li>
+<li>等待接受客户端的连接请求</li>
+<li>接收数据</li>
+<li>发送数据</li>
+<li>关闭套接字</li>
+</ol>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><h4 id="socket客户端与服务端"><a href="#socket客户端与服务端" class="headerlink" title="socket客户端与服务端"></a>socket客户端与服务端</h4><h5 id="socket-类的介绍"><a href="#socket-类的介绍" class="headerlink" title="socket 类的介绍"></a>socket 类的介绍</h5><p>导入 socket 模块 <strong>import socket</strong></p>
+<p>创建客户端 socket 对象 <strong>socket.socket(AddressFamily, Type)</strong></p>
+<p><strong>参数说明:</strong></p>
+<ul>
+<li>AddressFamily 表示IP地址类型, 分为TPv4和IPv6</li>
+<li>Type 表示传输协议类型</li>
+</ul>
+<p><strong>方法说明:</strong></p>
+<ul>
+<li><p>connect((host, port)) 表示和服务端套接字建立连接, host是服务器ip地址，port是应用程序的端口号</p>
+</li>
+<li><p>bind((host, port)) 表示绑定端口号, host 是 ip 地址，port 是端口号，ip 地址一般不指定，表示本机的任何一个ip地址都可以。</p>
+</li>
+<li><p>listen (backlog) 表示设置监听，backlog参数表示最大等待建立连接的个数。</p>
+</li>
+<li><p>accept() 表示等待接受客户端的连接请求</p>
+</li>
+<li><p>send(data) 表示发送数据，data 是二进制数据</p>
+</li>
+<li><p>recv(buffersize) 表示接收数据, buffersize 是每次接收数据的长度</p>
+</li>
+</ul>
+<h5 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="comment"># 创建tcp服务端套接字</span></span><br><span class="line">    tcp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">    <span class="comment"># 设置端口号复用，让程序退出端口号立即释放</span></span><br><span class="line">    tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="literal">True</span>) </span><br><span class="line">    <span class="comment"># 给程序绑定端口号</span></span><br><span class="line">    tcp_server_socket.bind((<span class="string">&quot;&quot;</span>, <span class="number">8080</span>))</span><br><span class="line">    <span class="comment"># 设置监听</span></span><br><span class="line">    <span class="comment"># 128:最大等待建立连接的个数， 提示： 目前是单任务的服务端，同一时刻只能服务与一个客户端，后续使用多任务能够让服务端同时服务与多个客户端，</span></span><br><span class="line">    <span class="comment"># 不需要让客户端进行等待建立连接</span></span><br><span class="line">    <span class="comment"># listen后的这个套接字只负责接收客户端连接请求，不能收发消息，收发消息使用返回的这个新套接字来完成</span></span><br><span class="line">    tcp_server_socket.listen(<span class="number">128</span>)</span><br><span class="line">    <span class="comment"># 等待客户端建立连接的请求, 只有客户端和服务端建立连接成功代码才会解阻塞，代码才能继续往下执行</span></span><br><span class="line">    <span class="comment"># 1. 专门和客户端通信的套接字： service_client_socket</span></span><br><span class="line">    <span class="comment"># 2. 客户端的ip地址和端口号： ip_port</span></span><br><span class="line">    service_client_socket, ip_port = tcp_server_socket.accept()</span><br><span class="line">    <span class="comment"># 代码执行到此说明连接建立成功</span></span><br><span class="line">    print(<span class="string">&quot;客户端的ip地址和端口号:&quot;</span>, ip_port)</span><br><span class="line">    <span class="comment"># 接收客户端发送的数据, 这次接收数据的最大字节数是1024</span></span><br><span class="line">    recv_data = service_client_socket.recv(<span class="number">1024</span>)</span><br><span class="line">    <span class="comment"># 获取数据的长度，如果为0，则证明客户端断开了与我们的连接</span></span><br><span class="line">    recv_data_length = len(recv_data)</span><br><span class="line">    print(<span class="string">&quot;接收数据的长度为:&quot;</span>, recv_data_length)</span><br><span class="line">    <span class="comment"># 对二进制数据进行解码</span></span><br><span class="line">    recv_content = recv_data.decode(<span class="string">&quot;utf8&quot;</span>)</span><br><span class="line">    print(<span class="string">&quot;客户端说:&quot;</span>, recv_content)</span><br><span class="line">    <span class="comment"># 准备发送的数据</span></span><br><span class="line">    send_data = <span class="string">&quot;ok, 问题正在处理中...&quot;</span>.encode(<span class="string">&quot;utf8&quot;</span>)</span><br><span class="line">    <span class="comment"># 发送数据给客户端</span></span><br><span class="line">    service_client_socket.send(send_data)</span><br><span class="line">    <span class="comment"># 关闭服务与客户端的套接字， 终止和客户端通信的服务</span></span><br><span class="line">    service_client_socket.close()</span><br><span class="line">    <span class="comment"># 关闭服务端的套接字, 终止和客户端提供建立连接请求的服务</span></span><br><span class="line">    tcp_server_socket.close()</span><br></pre></td></tr></table></figure>
+
+<h5 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="comment"># 创建tcp客户端套接字</span></span><br><span class="line">    <span class="comment"># 1. AF_INET：表示ipv4</span></span><br><span class="line">    <span class="comment"># 2. SOCK_STREAM: tcp传输协议</span></span><br><span class="line">    tcp_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">    <span class="comment"># 和服务端应用程序建立连接</span></span><br><span class="line">    tcp_client_socket.connect((<span class="string">&quot;192.168.131.62&quot;</span>, <span class="number">8080</span>))</span><br><span class="line">    <span class="comment"># 代码执行到此，说明连接建立成功</span></span><br><span class="line">    <span class="comment"># 准备发送的数据</span></span><br><span class="line">    send_data = <span class="string">&quot;你好服务端，我是客户端&quot;</span>.encode(<span class="string">&quot;utf8&quot;</span>)</span><br><span class="line">    <span class="comment"># 发送数据</span></span><br><span class="line">    tcp_client_socket.send(send_data)</span><br><span class="line">    <span class="comment"># 接收数据, 这次接收的数据最大字节数是1024</span></span><br><span class="line">    recv_data = tcp_client_socket.recv(<span class="number">1024</span>)</span><br><span class="line">    <span class="comment"># 返回的直接是服务端程序发送的二进制数据</span></span><br><span class="line">    print(<span class="string">&#x27;二进制服务端说：&#x27;</span>, recv_data)</span><br><span class="line">    <span class="comment"># 对数据进行解码</span></span><br><span class="line">    recv_content = recv_data.decode(<span class="string">&quot;utf8&quot;</span>)</span><br><span class="line">    print(<span class="string">&quot;服务端说:&quot;</span>, recv_content)</span><br><span class="line">    <span class="comment"># 关闭套接字</span></span><br><span class="line">    tcp_client_socket.close()</span><br></pre></td></tr></table></figure>
+
+<h5 id="执行结果"><a href="#执行结果" class="headerlink" title="执行结果"></a>执行结果</h5><p>服务端和客户端都运行后的结果</p>
+<h6 id="客户端-1"><a href="#客户端-1" class="headerlink" title="客户端"></a>客户端</h6><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">二进制服务端说: b&#39;ok, \xe9\x97\xae\xe9\xa2\x98\xe6\xad\xa3\xe5\x9c\xa8\xe5\xa4\x84\xe7&#39;</span><br><span class="line">服务端说: ok, 问题正在处理中...</span><br></pre></td></tr></table></figure>
+
+<h6 id="服务端-1"><a href="#服务端-1" class="headerlink" title="服务端"></a>服务端</h6><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">客户端的ip地址和端口号: (&#39;172.16.47.209&#39;, 52472)</span><br><span class="line">接收数据的长度为: 33</span><br><span class="line">客户端说: 你好服务端，我是客户端</span><br></pre></td></tr></table></figure>
+
+<h5 id="说明"><a href="#说明" class="headerlink" title="说明"></a><strong>说明</strong></h5><p>当客户端和服务端建立连接后，<strong>服务端程序退出后端口号不会立即释放，需要等待大概1-2分钟。</strong></p>
+<p>解决办法有两种:</p>
+<ol>
+<li>更换服务端端口号</li>
+<li>设置端口号复用(推荐大家使用)，也就是说让服务端程序退出后端口号立即释放。</li>
+</ol>
+<p>设置端口号复用的代码如下:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 参数1: 表示当前套接字</span></span><br><span class="line"><span class="comment"># 参数2: 设置端口号复用选项</span></span><br><span class="line"><span class="comment"># 参数3: 设置端口号复用选项对应的值</span></span><br><span class="line">tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<h5 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h5><ol>
+<li>当 TCP 客户端程序想要和 TCP 服务端程序进行通信的时候必须要先<strong>建立连接</strong></li>
+<li>TCP 客户端程序一般不需要绑定端口号，因为客户端是主动发起建立连接的。</li>
+<li><strong>TCP 服务端程序必须绑定端口号</strong>，否则客户端找不到这个 TCP 服务端程序。</li>
+<li>listen 后的套接字是被动套接字，<strong>只负责接收新的客户端的连接请求，不能收发消息。</strong></li>
+<li>当 TCP 客户端程序和 TCP 服务端程序连接成功后， TCP 服务器端程序会产生一个<strong>新的套接字</strong>，收发客户端消息使用该套接字。</li>
+<li><strong>关闭 accept 返回的套接字意味着和这个客户端已经通信完毕</strong>。</li>
+<li><strong>关闭 listen 后的套接字意味着服务端的套接字关闭了，会导致新的客户端不能连接服务端，但是之前已经接成功的客户端还能正常通信。</strong></li>
+<li><strong>当客户端的套接字调用 close 后，服务器端的 recv 会解阻塞，返回的数据长度为0</strong>，服务端可以通过返回数据的长度来判断客户端是否已经下线，反之<strong>服务端关闭套接字，客户端的 recv 也会解阻塞，返回的数据长度也为0</strong>。</li>
+</ol>
+<h4 id="多任务版TCP服务端程序"><a href="#多任务版TCP服务端程序" class="headerlink" title="多任务版TCP服务端程序"></a>多任务版TCP服务端程序</h4><h5 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h5><ol>
+<li>编写一个TCP服务端程序，循环等待接受客户端的连接请求</li>
+<li>当客户端和服务端建立连接成功，创建子线程，使用子线程专门处理客户端的请求，防止主线程阻塞</li>
+<li>把创建的子线程设置成为守护主线程，防止主线程无法退出。</li>
+</ol>
+<h5 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理客户端的请求操作</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">handle_client_request</span>(<span class="params">service_client_socket, ip_port</span>):</span></span><br><span class="line">    <span class="comment"># 循环接收客户端发送的数据</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="comment"># 接收客户端发送的数据</span></span><br><span class="line">        recv_data = service_client_socket.recv(<span class="number">1024</span>)</span><br><span class="line">        <span class="comment"># 容器类型判断是否有数据可以直接使用if语句进行判断，如果容器类型里面有数据表示条件成立，否则条件失败</span></span><br><span class="line">        <span class="comment"># 容器类型: 列表、字典、元组、字符串、set、range、二进制数据</span></span><br><span class="line">        <span class="keyword">if</span> recv_data:</span><br><span class="line">            print(recv_data.decode(<span class="string">&quot;utf8&quot;</span>), ip_port)</span><br><span class="line">            <span class="comment"># 回复</span></span><br><span class="line">            service_client_socket.send(<span class="string">&quot;ok，问题正在处理中...&quot;</span>.encode(<span class="string">&quot;utf8&quot;</span>))</span><br><span class="line"></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            print(<span class="string">&quot;客户端下线了:&quot;</span>, ip_port)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="comment"># 终止和客户端进行通信</span></span><br><span class="line">    service_client_socket.close()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="comment"># 创建tcp服务端套接字</span></span><br><span class="line">    tcp_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">    <span class="comment"># 设置端口号复用，让程序退出端口号立即释放</span></span><br><span class="line">    tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="literal">True</span>)</span><br><span class="line">    <span class="comment"># 绑定端口号</span></span><br><span class="line">    tcp_server_socket.bind((<span class="string">&quot;&quot;</span>, <span class="number">9090</span>))</span><br><span class="line">    <span class="comment"># 设置监听, listen后的套接字是被动套接字，只负责接收客户端的连接请求</span></span><br><span class="line">    tcp_server_socket.listen(<span class="number">128</span>)</span><br><span class="line">    <span class="comment"># 循环等待接收客户端的连接请求</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="comment"># 等待接收客户端的连接请求</span></span><br><span class="line">        service_client_socket, ip_port = tcp_server_socket.accept()</span><br><span class="line">        print(<span class="string">&quot;客户端连接成功:&quot;</span>, ip_port)</span><br><span class="line">        <span class="comment"># 当客户端和服务端建立连接成功以后，需要创建一个子线程，不同子线程负责接收不同客户端的消息</span></span><br><span class="line">        sub_thread = threading.Thread(target=handle_client_request, args=(service_client_socket, ip_port))</span><br><span class="line">        <span class="comment"># 设置守护主线程</span></span><br><span class="line">        sub_thread.setDaemon(<span class="literal">True</span>)</span><br><span class="line">        <span class="comment"># 启动子线程</span></span><br><span class="line">        sub_thread.start()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment"># tcp服务端套接字可以不需要关闭，因为服务端程序需要一直运行</span></span><br><span class="line">    <span class="comment"># tcp_server_socket.close()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h5><figure class="highlight py"><table><tr><td class="code"><pre><span class="line">客户端连接成功: (<span class="string">&#x27;172.16.47.209&#x27;</span>, <span class="number">51528</span>)</span><br><span class="line">客户端连接成功: (<span class="string">&#x27;172.16.47.209&#x27;</span>, <span class="number">51714</span>)</span><br><span class="line">hello1 (<span class="string">&#x27;172.16.47.209&#x27;</span>, <span class="number">51528</span>)</span><br><span class="line">hello2 (<span class="string">&#x27;172.16.47.209&#x27;</span>, <span class="number">51714</span>)</span><br></pre></td></tr></table></figure>
+
+<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><ol>
+<li><p>编写一个TCP服务端程序，循环等待接受客户端的连接请求</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    service_client_socket, ip_port = tcp_server_socket.accept()</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当客户端和服务端建立连接成功，创建子线程，使用子线程专门处理客户端的请求，防止主线程阻塞</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    service_client_socket, ip_port = tcp_server_socket.accept() </span><br><span class="line">    sub_thread = threading.Thread(target=handle_client_request, args=(service_client_socket, ip_port))</span><br><span class="line">    sub_thread.start()</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>把创建的子线程设置成为守护主线程，防止主线程无法退出。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    service_client_socket, ip_port = tcp_server_socket.accept() </span><br><span class="line">    sub_thread = threading.Thread(target=handle_client_request, args=(service_client_socket, ip_port))</span><br><span class="line">    sub_thread.setDaemon(<span class="literal">True</span>) </span><br><span class="line">    sub_thread.start()</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="send和recv原理剖析"><a href="#send和recv原理剖析" class="headerlink" title="send和recv原理剖析"></a>send和recv原理剖析</h3><h4 id="TCP-socket的发送和接收缓冲区"><a href="#TCP-socket的发送和接收缓冲区" class="headerlink" title="TCP socket的发送和接收缓冲区"></a>TCP socket的发送和接收缓冲区</h4><p>当创建一个TCP socket对象的时候会有一个<strong>发送缓冲区</strong>和一个<strong>接收缓冲区</strong>，<strong>这个发送和接收缓冲区指的就是内存中的一片空间。</strong></p>
+<h4 id="send原理剖析"><a href="#send原理剖析" class="headerlink" title="send原理剖析"></a>send原理剖析</h4><p>send是不是直接把数据发给服务端?</p>
+<p>不是，要想发数据，必须得<strong>通过网卡发送数据</strong>，应用程序是无法直接通过网卡发送数据的，它需要调用操作系统接口，也就是说，应用程序把发送的数据先写入到<strong>发送缓冲区</strong>(内存中的一片空间)，再<strong>由操作系统控制网卡把发送缓冲区的数据发送给服务端网卡</strong> 。</p>
+<h4 id="recv原理剖析"><a href="#recv原理剖析" class="headerlink" title="recv原理剖析"></a>recv原理剖析</h4><p>recv是不是直接从客户端接收数据?</p>
+<p>不是，<strong>应用软件是无法直接通过网卡接收数据的</strong>，它需要调用操作系统接口，<strong>由操作系统通过网卡接收数据</strong>，把接收的数据<strong>写入到接收缓冲区</strong>(内存中的一片空间），应用程序<strong>再从接收缓存区获取客户端发送的数据</strong>。</p>
+<h4 id="send和recv原理剖析图"><a href="#send和recv原理剖析图" class="headerlink" title="send和recv原理剖析图"></a>send和recv原理剖析图</h4><p><img data-src="https://20200324picgo-1251846158.cos.ap-shanghai.myqcloud.com/20201113155753.png"></p>
+<p><strong>说明:</strong></p>
+<ul>
+<li>发送数据是发送到发送缓冲区</li>
+<li>接收数据是从接收缓冲区 获取</li>
+</ul>
+<h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>不管是recv还是send都不是直接接收到对方的数据和发送数据到对方，<strong>发送数据会写入到发送缓冲区，接收数据是从接收缓冲区来读取，发送数据和接收数据最终是由操作系统控制网卡来完成。</strong></p>
+]]></content>
+      <categories>
+        <category>rd</category>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>网络编程</tag>
+        <tag>udp</tag>
+        <tag>线程</tag>
+        <tag>TCP</tag>
+        <tag>Socket</tag>
+        <tag>客户端</tag>
+        <tag>服务端</tag>
+        <tag>线程守护</tag>
+        <tag>send</tag>
+        <tag>recv</tag>
+        <tag>ipv4</tag>
+        <tag>ipv6</tag>
+        <tag>端口</tag>
+        <tag>端口号</tag>
+        <tag>socket示例</tag>
+      </tags>
+  </entry>
 </search>
